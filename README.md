@@ -1,36 +1,179 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Parametric Product Configurator
+
+A modern, dark-themed parametric product configurator built with **Next.js 14+ (App Router)**, **TypeScript**, **Tailwind CSS**, and **ShapeDiver Viewer**.
+
+![Configurator Screenshot](./docs/screenshot.png)
+
+## Features
+
+- 🎨 **Dynamic Parameter UI** - Automatically generates the correct input type for each parameter:
+  - **Number (Int/Float)** → Range Slider
+  - **Boolean** → Toggle Switch
+  - **StringList** → Dropdown Select
+  - **Color** → Color Picker
+  - **String** → Text Input
+- 🔄 **Real-time Updates** - Debounced parameter changes for smooth 3D updates
+- 📱 **Responsive Layout** - Left sidebar for controls, main area for 3D viewport
+- 🌙 **Dark Theme** - Minimalist "Indie Hacker" aesthetic with dark grays and clean typography
+- ⚡ **SSR Compatible** - Properly handles client-side only ShapeDiver viewer
+
+## Tech Stack
+
+- **Framework:** Next.js 16+ (App Router)
+- **Language:** TypeScript
+- **Styling:** Tailwind CSS
+- **3D Viewer:** @shapediver/viewer
+- **Icons:** Lucide React
 
 ## Getting Started
 
-First, run the development server:
+### Prerequisites
+
+- Node.js 18+
+- A ShapeDiver account with an uploaded Grasshopper model
+
+### Installation
+
+1. Clone or copy this project:
+
+```bash
+cd shapediver-configurator
+npm install
+```
+
+2. Configure your ShapeDiver credentials:
+
+```bash
+# Copy the example environment file
+cp .env.example .env.local
+```
+
+3. Edit `.env.local` with your ShapeDiver credentials:
+
+```env
+NEXT_PUBLIC_SHAPEDIVER_TICKET=your-ticket-here
+NEXT_PUBLIC_SHAPEDIVER_MODEL_VIEW_URL=https://sdr8euc1.eu-central-1.shapediver.com
+```
+
+4. Start the development server:
 
 ```bash
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+5. Open [http://localhost:3000](http://localhost:3000) in your browser.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Finding Your ShapeDiver Credentials
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+1. Go to [ShapeDiver Platform](https://www.shapediver.com/app/)
+2. Log in and open your model
+3. Click **"Edit"** on your model
+4. Go to the **"Developers"** tab
+5. Under **"Backend Access"**, click "Enable backend access" if not already enabled
+6. In the **"Embedding"** section, find:
+   - **TICKET** = The "Ticket for embedding" value (also called Model View ID)
+   - **MODEL_VIEW_URL** = The "Model view URL" (e.g., `https://sdr8euc1.eu-central-1.shapediver.com`)
 
-## Learn More
+### Important: Domain Allowlist
 
-To learn more about Next.js, take a look at the following resources:
+Make sure to add your development domain (e.g., `localhost`) to the **"Allowed domains"** list in the ShapeDiver dashboard for the embedding to work!
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## Project Structure
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+```
+shapediver-configurator/
+├── src/
+│   ├── app/
+│   │   ├── globals.css        # Global styles + custom scrollbar
+│   │   ├── layout.tsx         # Root layout
+│   │   └── page.tsx           # Main page (dynamic import for SSR)
+│   ├── components/
+│   │   ├── ShapeDiverViewer.tsx  # Main viewer + session management
+│   │   ├── ParameterPanel.tsx    # Grouped parameter list
+│   │   ├── ParameterInput.tsx    # Dynamic input components
+│   │   └── index.ts
+│   ├── hooks/
+│   │   └── useDebounce.ts     # Debounce utility for updates
+│   ├── lib/
+│   │   └── config.ts          # ShapeDiver configuration
+│   └── types/
+│       └── shapediver.ts      # TypeScript types
+├── .env.example               # Example environment variables
+├── .env.local                 # Your local configuration (gitignored)
+└── README.md
+```
 
-## Deploy on Vercel
+## How It Works
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+### 1. Viewer Initialization
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+The `ShapeDiverViewer` component:
+- Creates a viewport attached to a canvas element
+- Opens a session with your ShapeDiver model
+- Fetches all available parameters from the model
+- Filters out hidden parameters and sorts by order
+
+### 2. Dynamic Parameter UI
+
+The `ParameterInput` component reads the parameter's `type` property and renders:
+- `Bool` → Toggle switch
+- `Int`, `Float`, `Even`, `Odd` → Range slider with min/max
+- `Color` → Color picker with hex input
+- `StringList` → Dropdown select
+- Parameters with `choices` array → Dropdown select
+- Other `String` types → Text input
+
+### 3. Update Mechanism
+
+When a user changes a parameter:
+1. The value is immediately set on the parameter object
+2. A debounced (300ms) customization request is triggered
+3. ShapeDiver processes the update and returns new geometry
+4. The 3D viewport automatically updates
+
+## Customization
+
+### Styling
+
+Edit `src/app/globals.css` for:
+- Custom scrollbars
+- Range slider thumb styles
+- Color picker appearance
+- Focus states
+
+### Parameter Groups
+
+Parameters are automatically grouped by their `group.name` property. The "General" group appears first, followed by other groups sorted alphabetically.
+
+### Debounce Delay
+
+Adjust the debounce delay in `ShapeDiverViewer.tsx`:
+
+```typescript
+const debouncedCustomize = useCallback(
+  debounce(async () => {
+    // ...
+  }, 300), // Change this value (milliseconds)
+  []
+);
+```
+
+## API Reference
+
+### ShapeDiver Viewer
+
+The project uses the official `@shapediver/viewer` package. Key APIs used:
+
+- `createViewport()` - Creates the 3D rendering viewport
+- `createSession()` - Connects to a ShapeDiver model
+- `session.parameters` - Object containing all model parameters
+- `parameter.value` - Get/set parameter value
+- `session.customize()` - Trigger geometry update
+
+For full documentation, see:
+- [ShapeDiver Viewer Documentation](https://help.shapediver.com/doc/viewer)
+- [Viewer API Reference](https://viewer.shapediver.com/v3/latest/api/index.html)
+
+## License
+
+MIT
