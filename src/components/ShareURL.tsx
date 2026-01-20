@@ -46,7 +46,9 @@ export function ShareURL({ session, parameters }: ShareURLProps) {
   // Update share URL when dialog opens
   useEffect(() => {
     if (isOpen) {
-      setShareUrl(generateShareUrl());
+      const url = generateShareUrl();
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      setShareUrl((prev) => (prev !== url ? url : prev));
     }
   }, [isOpen, generateShareUrl]);
 

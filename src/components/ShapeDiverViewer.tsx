@@ -9,7 +9,8 @@ import {
   IParameterApi,
 } from '@shapediver/viewer';
 import { ModelConfig, isConfigValid, isModelConfigValid, MODELS, getDefaultModel } from '@/lib/config';
-import { Loader2, AlertCircle, Settings2 } from 'lucide-react';
+import { Loader2, AlertCircle, Settings2, ArrowLeft } from 'lucide-react';
+import Link from 'next/link';
 import { ParameterPanel } from './ParameterPanel';
 import { ViewerToolbar } from './ViewerToolbar';
 import { EnvironmentSelector } from './EnvironmentSelector';
@@ -293,11 +294,20 @@ export function ShapeDiverViewer({ className = '', initialModel }: ShapeDiverVie
   useShareURLLoader(session, handleParameterChange);
 
   return (
-    <div className={`flex h-screen bg-zinc-950 ${className}`}>
+    <div className={`flex h-screen overflow-hidden bg-zinc-950 ${className}`}>
       {/* Left Sidebar - Parameter Panel */}
       <aside className="w-80 flex-shrink-0 border-r border-zinc-800 bg-zinc-900/50 flex flex-col">
         {/* Sidebar Header */}
         <div className="p-4 border-b border-zinc-800">
+          <div className="mb-4">
+            <Link
+              href="/"
+              className="inline-flex items-center gap-2 text-zinc-400 hover:text-white transition-colors group"
+            >
+              <ArrowLeft className="w-4 h-4 transition-transform group-hover:-translate-x-1" />
+              <span className="text-xs font-medium">Back to Home</span>
+            </Link>
+          </div>
           <div className="flex items-center gap-2">
             <Settings2 className="w-5 h-5 text-zinc-400" />
             <h2 className="text-sm font-semibold text-zinc-100 uppercase tracking-wider">

@@ -16,6 +16,7 @@ import {
   Info,
 } from 'lucide-react';
 
+/* eslint-disable @typescript-eslint/no-explicit-any */
 interface ViewerToolbarProps {
   session: ISessionApi | null;
   viewport: IViewportApi | null;
@@ -86,12 +87,14 @@ export function ViewerToolbar({
       id: e.id,
       name: e.name,
       type: e.type,
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       displayname: (e as any).displayname
     })));
 
     return exports.map((exp, index) => ({
       id: exp.id,
       name: exp.name || '',
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       displayName: formatExportDisplayName(exp.name || (exp as any).displayname || '', index),
       type: exp.type || '',
       icon: getExportIcon(exp.name || '', exp.type || ''),
@@ -111,9 +114,12 @@ export function ViewerToolbar({
       // ShapeDiver API: viewport.camera.zoomTo() or viewport.camera.reset()
       if (viewport.camera) {
         // Try zoomTo first (fits all visible content)
-        if (typeof viewport.camera.zoomTo === 'function') {
-          await viewport.camera.zoomTo();
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        if (typeof (viewport.camera as any).zoomTo === 'function') {
+           // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          await (viewport.camera as any).zoomTo();
         } else if (typeof (viewport.camera as any).reset === 'function') {
+           // eslint-disable-next-line @typescript-eslint/no-explicit-any
           await (viewport.camera as any).reset();
         }
       }
@@ -135,12 +141,15 @@ export function ViewerToolbar({
       // Enable/disable auto rotation on viewport camera
       // ShapeDiver uses cameraControls property
       if (viewport.camera) {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const cameraControls = (viewport as any).cameraControls;
         if (cameraControls) {
           cameraControls.autoRotate = newState;
           cameraControls.autoRotateSpeed = newState ? 1.0 : 0;
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         } else if ((viewport.camera as any).enableCameraControls) {
           // Fallback to enableCameraControls if available
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
           (viewport.camera as any).enableCameraControls({
             autoRotate: newState,
             autoRotateSpeed: 1.0,
