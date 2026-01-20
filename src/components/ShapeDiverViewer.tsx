@@ -30,7 +30,7 @@ export function ShapeDiverViewer({ className = '', initialModel }: ShapeDiverVie
   const sessionRef = useRef<ISessionApi | null>(null);
   const viewportRef = useRef<IViewportApi | null>(null);
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
-  
+
   const [currentModel, setCurrentModel] = useState<ModelConfig | null>(initialModel || getDefaultModel());
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -87,9 +87,12 @@ export function ShapeDiverViewer({ className = '', initialModel }: ShapeDiverVie
         setIsLoading(true);
         setError(null);
 
-        // Clean up previous canvas if exists
-        if (canvasRef.current && canvasRef.current.parentNode) {
-          canvasRef.current.parentNode.removeChild(canvasRef.current);
+        // IMPORTANT: Clear the container completely to remove any leftover ShapeDiver UI elements
+        // This prevents stacking of multiple loading screens from aborted initializations
+        if (containerRef.current) {
+          while (containerRef.current.firstChild) {
+            containerRef.current.removeChild(containerRef.current.firstChild);
+          }
         }
 
         // Create canvas element dynamically
@@ -109,6 +112,15 @@ export function ShapeDiverViewer({ className = '', initialModel }: ShapeDiverVie
 
         if (!isMounted) {
           console.log('[ShapeDiver] Unmounted during viewport creation, cleaning up...');
+          // Clean up viewport before returning
+          try {
+            localViewport.close();
+          } catch (e) {
+            console.debug('[ShapeDiver] Viewport close error:', e);
+          }
+          if (localCanvas && localCanvas.parentNode) {
+            localCanvas.parentNode.removeChild(localCanvas);
+          }
           return;
         }
 
@@ -120,7 +132,7 @@ export function ShapeDiverViewer({ className = '', initialModel }: ShapeDiverVie
         console.log('[ShapeDiver] Creating session...');
         console.log('[ShapeDiver] Ticket:', currentModel.ticket.substring(0, 30) + '...');
         console.log('[ShapeDiver] URL:', currentModel.modelViewUrl);
-        
+
         localSession = await createSession({
           id: `session-${Date.now()}`,
           ticket: currentModel.ticket,
@@ -129,6 +141,20 @@ export function ShapeDiverViewer({ className = '', initialModel }: ShapeDiverVie
 
         if (!isMounted) {
           console.log('[ShapeDiver] Unmounted during session creation, cleaning up...');
+          // Clean up session and viewport before returning
+          try {
+            localSession.close();
+          } catch (e) {
+            console.debug('[ShapeDiver] Session close error:', e);
+          }
+          try {
+            localViewport.close();
+          } catch (e) {
+            console.debug('[ShapeDiver] Viewport close error:', e);
+          }
+          if (localCanvas && localCanvas.parentNode) {
+            localCanvas.parentNode.removeChild(localCanvas);
+          }
           return;
         }
 
@@ -139,7 +165,7 @@ export function ShapeDiverViewer({ className = '', initialModel }: ShapeDiverVie
         // Get all parameters (excluding hidden ones)
         const allParams = Object.values(localSession.parameters) as IParameterApi<unknown>[];
         console.log('[ShapeDiver] Total parameters:', allParams.length);
-        
+
         const visibleParams = allParams
           .filter((p) => !p.hidden)
           .sort((a, b) => (a.order ?? 0) - (b.order ?? 0));
@@ -182,42 +208,41 @@ export function ShapeDiverViewer({ className = '', initialModel }: ShapeDiverVie
     return () => {
       console.log('[ShapeDiver] Cleanup triggered');
       isMounted = false;
-      
-      // Use the local references for cleanup
-      const cleanup = async () => {
-        // Close session first
-        if (localSession) {
-          try {
-            localSession.close();
-            console.log('[ShapeDiver] Session closed');
-          } catch (err) {
-            console.debug('[ShapeDiver] Session cleanup:', err);
-          }
-        }
-        
-        // Then close viewport
-        if (localViewport) {
-          try {
-            localViewport.close();
-            console.log('[ShapeDiver] Viewport closed');
-          } catch (err) {
-            console.debug('[ShapeDiver] Viewport cleanup:', err);
-          }
-        }
 
-        // Finally remove canvas
-        if (localCanvas && localCanvas.parentNode) {
-          try {
-            localCanvas.parentNode.removeChild(localCanvas);
-            console.log('[ShapeDiver] Canvas removed');
-          } catch (err) {
-            console.debug('[ShapeDiver] Canvas removal:', err);
-          }
+      // Close session first
+      if (localSession) {
+        try {
+          localSession.close();
+          console.log('[ShapeDiver] Session closed');
+        } catch (err) {
+          console.debug('[ShapeDiver] Session cleanup:', err);
         }
-      };
+      }
 
-      // Defer cleanup slightly to avoid race conditions
-      setTimeout(cleanup, 50);
+      // Then close viewport
+      if (localViewport) {
+        try {
+          localViewport.close();
+          console.log('[ShapeDiver] Viewport closed');
+        } catch (err) {
+          console.debug('[ShapeDiver] Viewport cleanup:', err);
+        }
+      }
+
+      // Finally remove canvas
+      if (localCanvas && localCanvas.parentNode) {
+        try {
+          localCanvas.parentNode.removeChild(localCanvas);
+          console.log('[ShapeDiver] Canvas removed');
+        } catch (err) {
+          console.debug('[ShapeDiver] Canvas removal:', err);
+        }
+      }
+
+      // Clear refs
+      viewportRef.current = null;
+      sessionRef.current = null;
+      canvasRef.current = null;
     };
   }, [currentModel]); // Re-initialize when model changes
 
@@ -225,7 +250,7 @@ export function ShapeDiverViewer({ className = '', initialModel }: ShapeDiverVie
   const debouncedCustomize = useCallback(
     debounce(async () => {
       if (!sessionRef.current) return;
-      
+
       try {
         setIsCustomizing(true);
         await sessionRef.current.customize();
@@ -391,10 +416,10 @@ export function ShapeDiverViewer({ className = '', initialModel }: ShapeDiverVie
         {isReady && <EnvironmentSelector viewport={viewport} />}
 
         {/* Canvas Container */}
-        <div 
+        <div
           ref={containerRef}
-          className="w-full h-full"
-          style={{ display: isReady ? 'block' : 'none' }}
+          className="w-full h-full absolute inset-0"
+          style={{ visibility: isReady ? 'visible' : 'hidden' }}
         />
       </main>
     </div>
