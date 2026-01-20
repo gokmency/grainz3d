@@ -11,6 +11,12 @@ import {
 import { SHAPEDIVER_CONFIG, isConfigValid } from '@/lib/config';
 import { Loader2, AlertCircle, Settings2 } from 'lucide-react';
 import { ParameterPanel } from './ParameterPanel';
+import { ViewerToolbar } from './ViewerToolbar';
+import { EnvironmentSelector } from './EnvironmentSelector';
+import { ShareURL, useShareURLLoader } from './ShareURL';
+import { OutputsPanel } from './OutputsPanel';
+import { PresetSelector, Preset } from './PresetSelector';
+import { ARViewButton } from './ARViewButton';
 import { debounce } from '@/hooks/useDebounce';
 
 interface ShapeDiverViewerProps {
@@ -28,6 +34,8 @@ export function ShapeDiverViewer({ className = '' }: ShapeDiverViewerProps) {
   const [parameters, setParameters] = useState<IParameterApi<unknown>[]>([]);
   const [isCustomizing, setIsCustomizing] = useState(false);
   const [isReady, setIsReady] = useState(false);
+  const [session, setSession] = useState<ISessionApi | null>(null);
+  const [viewport, setViewport] = useState<IViewportApi | null>(null);
 
   // Initialize ShapeDiver viewer
   useEffect(() => {
@@ -78,6 +86,7 @@ export function ShapeDiverViewer({ className = '' }: ShapeDiverViewerProps) {
         }
 
         viewportRef.current = localViewport;
+        setViewport(localViewport);
         console.log('[ShapeDiver] Viewport created successfully');
 
         // Create the session
@@ -97,6 +106,7 @@ export function ShapeDiverViewer({ className = '' }: ShapeDiverViewerProps) {
         }
 
         sessionRef.current = localSession;
+        setSession(localSession);
         console.log('[ShapeDiver] Session created successfully');
 
         // Get all parameters (excluding hidden ones)
@@ -111,6 +121,17 @@ export function ShapeDiverViewer({ className = '' }: ShapeDiverViewerProps) {
         visibleParams.forEach((p) => {
           console.log(`  - ${p.name} (${p.type}): ${p.value}`);
         });
+
+        // Log available exports
+        const exports = Object.values(localSession.exports);
+        console.log('[ShapeDiver] Available exports:', exports.length);
+        exports.forEach((exp) => {
+          console.log(`  - ${exp.name} (${exp.type})`);
+        });
+
+        // Log available outputs
+        const outputs = Object.values(localSession.outputs);
+        console.log('[ShapeDiver] Available outputs:', outputs.length);
 
         setParameters(visibleParams);
         setIsLoading(false);
@@ -193,10 +214,10 @@ export function ShapeDiverViewer({ className = '' }: ShapeDiverViewerProps) {
   // Handle parameter value change
   const handleParameterChange = useCallback(
     async (parameterId: string, value: string | number | boolean) => {
-      const session = sessionRef.current;
-      if (!session) return;
+      const currentSession = sessionRef.current;
+      if (!currentSession) return;
 
-      const param = session.parameters[parameterId];
+      const param = currentSession.parameters[parameterId];
       if (!param) return;
 
       try {
@@ -210,6 +231,14 @@ export function ShapeDiverViewer({ className = '' }: ShapeDiverViewerProps) {
     },
     [debouncedCustomize]
   );
+
+  // Handle preset application
+  const handleApplyPreset = useCallback((preset: Preset) => {
+    console.log('[ShapeDiver] Applied preset:', preset.name);
+  }, []);
+
+  // Load configuration from URL
+  useShareURLLoader(session, handleParameterChange);
 
   return (
     <div className={`flex h-screen bg-zinc-950 ${className}`}>
@@ -230,6 +259,17 @@ export function ShapeDiverViewer({ className = '' }: ShapeDiverViewerProps) {
             </div>
           )}
         </div>
+
+        {/* Preset Selector */}
+        {isReady && parameters.length > 0 && (
+          <div className="px-4 py-3 border-b border-zinc-800">
+            <PresetSelector
+              session={session}
+              parameters={parameters}
+              onApplyPreset={handleApplyPreset}
+            />
+          </div>
+        )}
 
         {/* Parameters List */}
         <div className="flex-1 overflow-y-auto custom-scrollbar">
@@ -252,6 +292,17 @@ export function ShapeDiverViewer({ className = '' }: ShapeDiverViewerProps) {
             />
           )}
         </div>
+
+        {/* Outputs Panel */}
+        {isReady && <OutputsPanel session={session} />}
+
+        {/* Sidebar Footer - Share & AR */}
+        {isReady && (
+          <div className="p-4 border-t border-zinc-800 flex gap-2">
+            <ShareURL session={session} parameters={parameters} />
+            <ARViewButton viewport={viewport} session={session} />
+          </div>
+        )}
       </aside>
 
       {/* Main Viewport */}
@@ -287,6 +338,17 @@ export function ShapeDiverViewer({ className = '' }: ShapeDiverViewerProps) {
             </div>
           </div>
         )}
+
+        {/* Viewer Toolbar */}
+        {isReady && (
+          <ViewerToolbar
+            session={session}
+            viewport={viewport}
+          />
+        )}
+
+        {/* Environment Selector */}
+        {isReady && <EnvironmentSelector viewport={viewport} />}
 
         {/* Canvas Container */}
         <div 
