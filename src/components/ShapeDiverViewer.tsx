@@ -108,6 +108,7 @@ export function ShapeDiverViewer({ className = '', initialModel }: ShapeDiverVie
         localViewport = await createViewport({
           id: `viewport-${Date.now()}`,
           canvas: localCanvas,
+          userControllable: false,
         });
 
         if (!isMounted) {
