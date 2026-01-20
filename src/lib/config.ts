@@ -3,6 +3,9 @@
  * 
  * Supports multiple models via environment variables.
  * Add models by setting NEXT_PUBLIC_SHAPEDIVER_MODEL_X_TICKET and NEXT_PUBLIC_SHAPEDIVER_MODEL_X_URL
+ * 
+ * Note: Next.js requires static access to process.env variables for client-side bundling.
+ * Dynamic access like process.env[`VAR_${i}`] won't work on the client.
  */
 
 export interface ModelConfig {
@@ -16,7 +19,7 @@ export interface ModelConfig {
 
 /**
  * Parse models from environment variables
- * Format: NEXT_PUBLIC_SHAPEDIVER_MODEL_1_NAME, NEXT_PUBLIC_SHAPEDIVER_MODEL_1_TICKET, etc.
+ * We must use static process.env access for Next.js client-side bundling
  */
 function parseModelsFromEnv(): ModelConfig[] {
   const models: ModelConfig[] = [];
@@ -35,21 +38,64 @@ function parseModelsFromEnv(): ModelConfig[] {
     });
   }
   
-  // Check for numbered models (1-10)
-  for (let i = 1; i <= 10; i++) {
-    const ticket = process.env[`NEXT_PUBLIC_SHAPEDIVER_MODEL_${i}_TICKET`];
-    const url = process.env[`NEXT_PUBLIC_SHAPEDIVER_MODEL_${i}_URL`];
-    
-    if (ticket && url) {
-      models.push({
-        id: `model-${i}`,
-        name: process.env[`NEXT_PUBLIC_SHAPEDIVER_MODEL_${i}_NAME`] || `Model ${i}`,
-        ticket,
-        modelViewUrl: url,
-        description: process.env[`NEXT_PUBLIC_SHAPEDIVER_MODEL_${i}_DESCRIPTION`] || '',
-        thumbnail: process.env[`NEXT_PUBLIC_SHAPEDIVER_MODEL_${i}_THUMBNAIL`] || '',
-      });
-    }
+  // Model 1 - Static access required for Next.js client bundling
+  if (process.env.NEXT_PUBLIC_SHAPEDIVER_MODEL_1_TICKET && process.env.NEXT_PUBLIC_SHAPEDIVER_MODEL_1_URL) {
+    models.push({
+      id: 'model-1',
+      name: process.env.NEXT_PUBLIC_SHAPEDIVER_MODEL_1_NAME || 'Model 1',
+      ticket: process.env.NEXT_PUBLIC_SHAPEDIVER_MODEL_1_TICKET,
+      modelViewUrl: process.env.NEXT_PUBLIC_SHAPEDIVER_MODEL_1_URL,
+      description: process.env.NEXT_PUBLIC_SHAPEDIVER_MODEL_1_DESCRIPTION || '',
+      thumbnail: process.env.NEXT_PUBLIC_SHAPEDIVER_MODEL_1_THUMBNAIL || '',
+    });
+  }
+
+  // Model 2
+  if (process.env.NEXT_PUBLIC_SHAPEDIVER_MODEL_2_TICKET && process.env.NEXT_PUBLIC_SHAPEDIVER_MODEL_2_URL) {
+    models.push({
+      id: 'model-2',
+      name: process.env.NEXT_PUBLIC_SHAPEDIVER_MODEL_2_NAME || 'Model 2',
+      ticket: process.env.NEXT_PUBLIC_SHAPEDIVER_MODEL_2_TICKET,
+      modelViewUrl: process.env.NEXT_PUBLIC_SHAPEDIVER_MODEL_2_URL,
+      description: process.env.NEXT_PUBLIC_SHAPEDIVER_MODEL_2_DESCRIPTION || '',
+      thumbnail: process.env.NEXT_PUBLIC_SHAPEDIVER_MODEL_2_THUMBNAIL || '',
+    });
+  }
+
+  // Model 3
+  if (process.env.NEXT_PUBLIC_SHAPEDIVER_MODEL_3_TICKET && process.env.NEXT_PUBLIC_SHAPEDIVER_MODEL_3_URL) {
+    models.push({
+      id: 'model-3',
+      name: process.env.NEXT_PUBLIC_SHAPEDIVER_MODEL_3_NAME || 'Model 3',
+      ticket: process.env.NEXT_PUBLIC_SHAPEDIVER_MODEL_3_TICKET,
+      modelViewUrl: process.env.NEXT_PUBLIC_SHAPEDIVER_MODEL_3_URL,
+      description: process.env.NEXT_PUBLIC_SHAPEDIVER_MODEL_3_DESCRIPTION || '',
+      thumbnail: process.env.NEXT_PUBLIC_SHAPEDIVER_MODEL_3_THUMBNAIL || '',
+    });
+  }
+
+  // Model 4
+  if (process.env.NEXT_PUBLIC_SHAPEDIVER_MODEL_4_TICKET && process.env.NEXT_PUBLIC_SHAPEDIVER_MODEL_4_URL) {
+    models.push({
+      id: 'model-4',
+      name: process.env.NEXT_PUBLIC_SHAPEDIVER_MODEL_4_NAME || 'Model 4',
+      ticket: process.env.NEXT_PUBLIC_SHAPEDIVER_MODEL_4_TICKET,
+      modelViewUrl: process.env.NEXT_PUBLIC_SHAPEDIVER_MODEL_4_URL,
+      description: process.env.NEXT_PUBLIC_SHAPEDIVER_MODEL_4_DESCRIPTION || '',
+      thumbnail: process.env.NEXT_PUBLIC_SHAPEDIVER_MODEL_4_THUMBNAIL || '',
+    });
+  }
+
+  // Model 5
+  if (process.env.NEXT_PUBLIC_SHAPEDIVER_MODEL_5_TICKET && process.env.NEXT_PUBLIC_SHAPEDIVER_MODEL_5_URL) {
+    models.push({
+      id: 'model-5',
+      name: process.env.NEXT_PUBLIC_SHAPEDIVER_MODEL_5_NAME || 'Model 5',
+      ticket: process.env.NEXT_PUBLIC_SHAPEDIVER_MODEL_5_TICKET,
+      modelViewUrl: process.env.NEXT_PUBLIC_SHAPEDIVER_MODEL_5_URL,
+      description: process.env.NEXT_PUBLIC_SHAPEDIVER_MODEL_5_DESCRIPTION || '',
+      thumbnail: process.env.NEXT_PUBLIC_SHAPEDIVER_MODEL_5_THUMBNAIL || '',
+    });
   }
   
   return models;
