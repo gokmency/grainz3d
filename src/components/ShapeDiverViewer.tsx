@@ -8,7 +8,7 @@ import {
   IViewportApi,
   IParameterApi,
 } from '@shapediver/viewer';
-import { SHAPEDIVER_CONFIG, isConfigValid } from '@/lib/config';
+import { ModelConfig, isConfigValid, isModelConfigValid, MODELS, getDefaultModel } from '@/lib/config';
 import { Loader2, AlertCircle, Settings2 } from 'lucide-react';
 import { ParameterPanel } from './ParameterPanel';
 import { ViewerToolbar } from './ViewerToolbar';
@@ -17,18 +17,21 @@ import { ShareURL, useShareURLLoader } from './ShareURL';
 import { OutputsPanel } from './OutputsPanel';
 import { PresetSelector, Preset } from './PresetSelector';
 import { ARViewButton } from './ARViewButton';
+import { ModelSelector } from './ModelSelector';
 import { debounce } from '@/hooks/useDebounce';
 
 interface ShapeDiverViewerProps {
   className?: string;
+  initialModel?: ModelConfig;
 }
 
-export function ShapeDiverViewer({ className = '' }: ShapeDiverViewerProps) {
+export function ShapeDiverViewer({ className = '', initialModel }: ShapeDiverViewerProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const sessionRef = useRef<ISessionApi | null>(null);
   const viewportRef = useRef<IViewportApi | null>(null);
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   
+  const [currentModel, setCurrentModel] = useState<ModelConfig | null>(initialModel || getDefaultModel());
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [parameters, setParameters] = useState<IParameterApi<unknown>[]>([]);
@@ -36,6 +39,16 @@ export function ShapeDiverViewer({ className = '' }: ShapeDiverViewerProps) {
   const [isReady, setIsReady] = useState(false);
   const [session, setSession] = useState<ISessionApi | null>(null);
   const [viewport, setViewport] = useState<IViewportApi | null>(null);
+
+  // Handle model change
+  const handleModelChange = useCallback((model: ModelConfig) => {
+    setCurrentModel(model);
+    // Reset states
+    setIsReady(false);
+    setParameters([]);
+    setSession(null);
+    setError(null);
+  }, []);
 
   // Initialize ShapeDiver viewer
   useEffect(() => {
@@ -60,10 +73,24 @@ export function ShapeDiverViewer({ className = '' }: ShapeDiverViewerProps) {
         return;
       }
 
+      // Validate current model
+      if (!currentModel || !isModelConfigValid(currentModel)) {
+        console.log('[ShapeDiver] Current model invalid');
+        setError('Selected model configuration is invalid.');
+        setIsLoading(false);
+        return;
+      }
+
       try {
         console.log('[ShapeDiver] Starting initialization...');
+        console.log('[ShapeDiver] Model:', currentModel.name);
         setIsLoading(true);
         setError(null);
+
+        // Clean up previous canvas if exists
+        if (canvasRef.current && canvasRef.current.parentNode) {
+          canvasRef.current.parentNode.removeChild(canvasRef.current);
+        }
 
         // Create canvas element dynamically
         localCanvas = document.createElement('canvas');
@@ -89,15 +116,15 @@ export function ShapeDiverViewer({ className = '' }: ShapeDiverViewerProps) {
         setViewport(localViewport);
         console.log('[ShapeDiver] Viewport created successfully');
 
-        // Create the session
+        // Create the session with current model
         console.log('[ShapeDiver] Creating session...');
-        console.log('[ShapeDiver] Ticket:', SHAPEDIVER_CONFIG.ticket.substring(0, 30) + '...');
-        console.log('[ShapeDiver] URL:', SHAPEDIVER_CONFIG.modelViewUrl);
+        console.log('[ShapeDiver] Ticket:', currentModel.ticket.substring(0, 30) + '...');
+        console.log('[ShapeDiver] URL:', currentModel.modelViewUrl);
         
         localSession = await createSession({
           id: `session-${Date.now()}`,
-          ticket: SHAPEDIVER_CONFIG.ticket,
-          modelViewUrl: SHAPEDIVER_CONFIG.modelViewUrl,
+          ticket: currentModel.ticket,
+          modelViewUrl: currentModel.modelViewUrl,
         });
 
         if (!isMounted) {
@@ -192,7 +219,7 @@ export function ShapeDiverViewer({ className = '' }: ShapeDiverViewerProps) {
       // Defer cleanup slightly to avoid race conditions
       setTimeout(cleanup, 50);
     };
-  }, []);
+  }, [currentModel]); // Re-initialize when model changes
 
   // Debounced customization function
   const debouncedCustomize = useCallback(
@@ -260,6 +287,17 @@ export function ShapeDiverViewer({ className = '' }: ShapeDiverViewerProps) {
           )}
         </div>
 
+        {/* Model Selector - Only shows if multiple models */}
+        {MODELS.length > 1 && (
+          <div className="px-4 py-3 border-b border-zinc-800">
+            <ModelSelector
+              currentModel={currentModel}
+              onModelChange={handleModelChange}
+              disabled={isLoading}
+            />
+          </div>
+        )}
+
         {/* Preset Selector */}
         {isReady && parameters.length > 0 && (
           <div className="px-4 py-3 border-b border-zinc-800">
@@ -312,7 +350,9 @@ export function ShapeDiverViewer({ className = '' }: ShapeDiverViewerProps) {
           <div className="absolute inset-0 flex items-center justify-center bg-zinc-950 z-10">
             <div className="flex flex-col items-center gap-3">
               <Loader2 className="w-10 h-10 text-zinc-600 animate-spin" />
-              <span className="text-zinc-500 text-sm">Loading 3D Model...</span>
+              <span className="text-zinc-500 text-sm">
+                {currentModel ? `Loading ${currentModel.name}...` : 'Loading 3D Model...'}
+              </span>
             </div>
           </div>
         )}

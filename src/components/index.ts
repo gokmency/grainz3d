@@ -8,6 +8,7 @@ export { ParameterInput } from './ParameterInput';
 // Toolbar and controls
 export { ViewerToolbar } from './ViewerToolbar';
 export { EnvironmentSelector } from './EnvironmentSelector';
+export { ModelSelector } from './ModelSelector';
 
 // Sharing and presets
 export { ShareURL, useShareURLLoader } from './ShareURL';

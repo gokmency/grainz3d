@@ -16,6 +16,11 @@ A modern, dark-themed parametric product configurator built with **Next.js 14+ (
 - 📱 **Responsive Layout** - Left sidebar for controls, main area for 3D viewport
 - 🌙 **Dark Theme** - Minimalist "Indie Hacker" aesthetic with dark grays and clean typography
 - ⚡ **SSR Compatible** - Properly handles client-side only ShapeDiver viewer
+- 🔀 **Multi-Model Support** - Switch between multiple ShapeDiver models via environment variables
+- 📸 **Screenshot Export** - Download high-quality PNG screenshots
+- 🌍 **Environment Maps** - Multiple lighting environments (Studio, Nature, Urban, etc.)
+- 💾 **Preset System** - Save and load parameter configurations
+- 🔗 **Share URL** - Generate shareable links with current configuration
 
 ## Tech Stack
 
@@ -50,9 +55,28 @@ cp .env.example .env.local
 
 3. Edit `.env.local` with your ShapeDiver credentials:
 
+**Single Model Setup:**
 ```env
 NEXT_PUBLIC_SHAPEDIVER_TICKET=your-ticket-here
 NEXT_PUBLIC_SHAPEDIVER_MODEL_VIEW_URL=https://sdr8euc1.eu-central-1.shapediver.com
+NEXT_PUBLIC_SHAPEDIVER_MODEL_NAME=My Model
+```
+
+**Multiple Models Setup:**
+```env
+# Model 1
+NEXT_PUBLIC_SHAPEDIVER_MODEL_1_NAME=Chair Configurator
+NEXT_PUBLIC_SHAPEDIVER_MODEL_1_TICKET=your-model-1-ticket
+NEXT_PUBLIC_SHAPEDIVER_MODEL_1_URL=https://sdrXXXX.eu-central-1.shapediver.com
+NEXT_PUBLIC_SHAPEDIVER_MODEL_1_DESCRIPTION=Customize your perfect chair
+
+# Model 2
+NEXT_PUBLIC_SHAPEDIVER_MODEL_2_NAME=Table Designer
+NEXT_PUBLIC_SHAPEDIVER_MODEL_2_TICKET=your-model-2-ticket
+NEXT_PUBLIC_SHAPEDIVER_MODEL_2_URL=https://sdrXXXX.eu-central-1.shapediver.com
+NEXT_PUBLIC_SHAPEDIVER_MODEL_2_DESCRIPTION=Design your custom table
+
+# Add up to 10 models (MODEL_3, MODEL_4, etc.)
 ```
 
 4. Start the development server:
