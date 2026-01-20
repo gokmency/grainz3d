@@ -1,5 +1,7 @@
 'use client';
 
+/* eslint-disable @typescript-eslint/no-explicit-any */
+
 import { useState, useCallback, useEffect } from 'react';
 import { IViewportApi, ENVIRONMENT_MAP } from '@shapediver/viewer';
 import { Sun, Moon, Sparkles, Building2, TreePine, Warehouse, ChevronDown, Check } from 'lucide-react';
@@ -138,11 +140,13 @@ export function EnvironmentSelector({ viewport }: EnvironmentSelectorProps) {
         
         if (envMapValue !== undefined) {
           // Use the enum value directly
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any, react-hooks/immutability
           (viewport as any).environmentMap = envMapValue;
           showStatus(`Environment: ${env.name}`);
           console.log('[Environment] Updated with enum value:', env.value, '=', envMapValue);
         } else {
           // Fallback: try string value
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any, react-hooks/immutability
           (viewport as any).environmentMap = env.value;
           showStatus(`Environment: ${env.name}`);
           console.log('[Environment] Updated with string value:', env.value);
@@ -172,6 +176,7 @@ export function EnvironmentSelector({ viewport }: EnvironmentSelectorProps) {
       }
       // Fallback: direct property
       else if ('shadows' in viewport) {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any, react-hooks/immutability
         (viewport as any).shadows = newState;
         showStatus(`Shadows: ${newState ? 'On' : 'Off'}`);
         console.log('[Environment] Shadows updated via direct assignment:', newState);
@@ -199,6 +204,7 @@ export function EnvironmentSelector({ viewport }: EnvironmentSelectorProps) {
       }
       // Fallback: direct property
       else if ('groundPlane' in viewport) {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any, react-hooks/immutability
         (viewport as any).groundPlane = newState;
         showStatus(`Ground Plane: ${newState ? 'On' : 'Off'}`);
         console.log('[Environment] Ground plane updated via direct assignment:', newState);

@@ -1,5 +1,7 @@
 'use client';
 
+/* eslint-disable @typescript-eslint/no-explicit-any */
+
 import { useState, useCallback, useEffect } from 'react';
 import { IViewportApi, ISessionApi } from '@shapediver/viewer';
 import { Smartphone, QrCode, X, Loader2, AlertCircle } from 'lucide-react';

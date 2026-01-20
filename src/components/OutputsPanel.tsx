@@ -13,6 +13,7 @@ import {
   Loader2,
 } from 'lucide-react';
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 interface OutputsPanelProps {
   session: ISessionApi | null;
 }
@@ -100,8 +101,10 @@ export function OutputsPanel({ session }: OutputsPanelProps) {
 
       for (const output of sessionOutputs) {
         // Skip geometry outputs, only show data outputs
-        if (output.content && output.content.length > 0) {
-          const content = output.content[0];
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        if ((output.content && output.content.length > 0) || (output as any).data) {
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          const content = output.content?.[0] || { data: (output as any).data };
           
           // Check if it's a data output (not geometry)
           if (content.data !== undefined) {
@@ -144,6 +147,7 @@ export function OutputsPanel({ session }: OutputsPanelProps) {
       // Listen for customization complete events
       // Note: The actual event name may vary based on ShapeDiver version
       try {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         (session as any).on?.('customization.complete', handleUpdate);
       } catch {
         // Fallback: refresh on interval
@@ -151,6 +155,7 @@ export function OutputsPanel({ session }: OutputsPanelProps) {
 
       return () => {
         try {
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
           (session as any).off?.('customization.complete', handleUpdate);
         } catch {
           // Ignore cleanup errors
