@@ -1,8 +1,8 @@
 'use client';
 
-import { useState, useCallback } from 'react';
-import { IViewportApi } from '@shapediver/viewer';
-import { Sun, Moon, Sparkles, Building2, TreePine, Warehouse, ChevronDown } from 'lucide-react';
+import { useState, useCallback, useEffect } from 'react';
+import { IViewportApi, ENVIRONMENT_MAP } from '@shapediver/viewer';
+import { Sun, Moon, Sparkles, Building2, TreePine, Warehouse, ChevronDown, Check } from 'lucide-react';
 
 interface EnvironmentSelectorProps {
   viewport: IViewportApi | null;
@@ -16,60 +16,114 @@ interface EnvironmentOption {
   description: string;
 }
 
-// ShapeDiver environment map options
+// Available environment maps from ShapeDiver ENVIRONMENT_MAP enum
+// These are the actual values that work with the API
 const ENVIRONMENT_OPTIONS: EnvironmentOption[] = [
   {
-    id: 'studio',
-    name: 'Studio',
+    id: 'default_studio',
+    name: 'Default Studio',
     icon: <Sparkles className="w-4 h-4" />,
-    value: 'photo_studio',
-    description: 'Clean studio lighting',
+    value: 'DEFAULT_STUDIO',
+    description: 'Standard studio lighting',
   },
   {
-    id: 'outdoor',
-    name: 'Outdoor',
+    id: 'photo_studio',
+    name: 'Photo Studio',
     icon: <Sun className="w-4 h-4" />,
-    value: 'outdoor',
-    description: 'Natural daylight',
+    value: 'PHOTO_STUDIO',
+    description: 'Professional photo lighting',
   },
   {
-    id: 'night',
-    name: 'Night',
+    id: 'furniture_studio',
+    name: 'Furniture Studio',
+    icon: <Sparkles className="w-4 h-4" />,
+    value: 'FURNITURE_STUDIO',
+    description: 'Optimized for furniture',
+  },
+  {
+    id: 'jewelry_studio',
+    name: 'Jewelry Studio',
+    icon: <Sparkles className="w-4 h-4" />,
+    value: 'JEWELRY_STUDIO',
+    description: 'Optimized for jewelry',
+  },
+  {
+    id: 'neutral',
+    name: 'Neutral',
     icon: <Moon className="w-4 h-4" />,
-    value: 'night',
-    description: 'Night environment',
+    value: 'NEUTRAL',
+    description: 'Neutral lighting',
   },
   {
-    id: 'urban',
-    name: 'Urban',
-    icon: <Building2 className="w-4 h-4" />,
-    value: 'urban',
-    description: 'City environment',
+    id: 'colorful_studio',
+    name: 'Colorful Studio',
+    icon: <Sparkles className="w-4 h-4" />,
+    value: 'COLORFUL_STUDIO',
+    description: 'Vibrant studio lighting',
   },
   {
-    id: 'nature',
-    name: 'Nature',
+    id: 'venice_sunset',
+    name: 'Venice Sunset',
+    icon: <Sun className="w-4 h-4" />,
+    value: 'VENICE_SUNSET',
+    description: 'Warm sunset ambiance',
+  },
+  {
+    id: 'green_point_park',
+    name: 'Green Point Park',
     icon: <TreePine className="w-4 h-4" />,
-    value: 'nature',
-    description: 'Forest environment',
+    value: 'GREEN_POINT_PARK',
+    description: 'Outdoor park setting',
   },
   {
-    id: 'warehouse',
-    name: 'Warehouse',
-    icon: <Warehouse className="w-4 h-4" />,
-    value: 'warehouse',
-    description: 'Industrial setting',
+    id: 'snowy_field',
+    name: 'Snowy Field',
+    icon: <Moon className="w-4 h-4" />,
+    value: 'SNOWY_FIELD',
+    description: 'Winter outdoor scene',
+  },
+  {
+    id: 'wide_street',
+    name: 'Wide Street',
+    icon: <Building2 className="w-4 h-4" />,
+    value: 'WIDE_STREET',
+    description: 'Urban street scene',
   },
 ];
 
 export function EnvironmentSelector({ viewport }: EnvironmentSelectorProps) {
-  const [selectedEnv, setSelectedEnv] = useState<string>('studio');
+  const [selectedEnv, setSelectedEnv] = useState<string>('default_studio');
   const [isOpen, setIsOpen] = useState(false);
   const [shadowsEnabled, setShadowsEnabled] = useState(true);
   const [groundPlaneEnabled, setGroundPlaneEnabled] = useState(true);
+  const [statusMessage, setStatusMessage] = useState<string | null>(null);
+
+  // Show status message temporarily
+  const showStatus = useCallback((message: string) => {
+    setStatusMessage(message);
+    setTimeout(() => setStatusMessage(null), 2000);
+  }, []);
+
+  // Initialize with current viewport settings
+  useEffect(() => {
+    if (!viewport) return;
+    
+    try {
+      // Get current shadow state
+      if ('shadows' in viewport) {
+        setShadowsEnabled(!!(viewport as any).shadows);
+      }
+      // Get current ground plane state
+      if ('groundPlane' in viewport) {
+        setGroundPlaneEnabled(!!(viewport as any).groundPlane);
+      }
+    } catch (err) {
+      console.log('[Environment] Could not read initial settings');
+    }
+  }, [viewport]);
 
   const handleEnvironmentChange = useCallback(
-    (envId: string) => {
+    async (envId: string) => {
       if (!viewport) return;
 
       const env = ENVIRONMENT_OPTIONS.find((e) => e.id === envId);
@@ -79,61 +133,94 @@ export function EnvironmentSelector({ viewport }: EnvironmentSelectorProps) {
         setSelectedEnv(envId);
         setIsOpen(false);
 
-        // Update viewport environment
-        // Note: The actual API may vary based on ShapeDiver version
-        if (viewport.environmentMap !== undefined) {
-          // Try to set environment map if supported
-          (viewport as any).environmentMap = env.value;
-        }
+        // Get the actual enum value from ENVIRONMENT_MAP
+        const envMapValue = (ENVIRONMENT_MAP as any)?.[env.value];
         
-        // Alternative approach using lighting settings
-        if ((viewport as any).lighting) {
-          (viewport as any).lighting.environment = env.value;
+        if (envMapValue !== undefined) {
+          // Use the enum value directly
+          (viewport as any).environmentMap = envMapValue;
+          showStatus(`Environment: ${env.name}`);
+          console.log('[Environment] Updated with enum value:', env.value, '=', envMapValue);
+        } else {
+          // Fallback: try string value
+          (viewport as any).environmentMap = env.value;
+          showStatus(`Environment: ${env.name}`);
+          console.log('[Environment] Updated with string value:', env.value);
         }
       } catch (err) {
-        console.error('Environment change error:', err);
+        console.error('[Environment] Change error:', err);
+        showStatus('Environment change failed');
       }
     },
-    [viewport]
+    [viewport, showStatus]
   );
 
-  const handleToggleShadows = useCallback(() => {
+  const handleToggleShadows = useCallback(async () => {
     if (!viewport) return;
 
     try {
       const newState = !shadowsEnabled;
       setShadowsEnabled(newState);
 
-      // Toggle shadows - ShapeDiver API expects boolean
-      if ('shadows' in viewport) {
+      // Try updateSettingsAsync first
+      if (typeof (viewport as any).updateSettingsAsync === 'function') {
+        await (viewport as any).updateSettingsAsync({
+          shadows: newState,
+        });
+        showStatus(`Shadows: ${newState ? 'On' : 'Off'}`);
+        console.log('[Environment] Shadows updated via updateSettingsAsync:', newState);
+      }
+      // Fallback: direct property
+      else if ('shadows' in viewport) {
         (viewport as any).shadows = newState;
+        showStatus(`Shadows: ${newState ? 'On' : 'Off'}`);
+        console.log('[Environment] Shadows updated via direct assignment:', newState);
       }
     } catch (err) {
-      console.error('Shadow toggle error:', err);
+      console.error('[Environment] Shadow toggle error:', err);
+      setShadowsEnabled(!shadowsEnabled); // Revert on error
     }
-  }, [viewport, shadowsEnabled]);
+  }, [viewport, shadowsEnabled, showStatus]);
 
-  const handleToggleGroundPlane = useCallback(() => {
+  const handleToggleGroundPlane = useCallback(async () => {
     if (!viewport) return;
 
     try {
       const newState = !groundPlaneEnabled;
       setGroundPlaneEnabled(newState);
 
-      // Toggle ground plane - ShapeDiver API expects boolean
-      if ('groundPlane' in viewport) {
+      // Try updateSettingsAsync first
+      if (typeof (viewport as any).updateSettingsAsync === 'function') {
+        await (viewport as any).updateSettingsAsync({
+          groundPlane: newState,
+        });
+        showStatus(`Ground Plane: ${newState ? 'On' : 'Off'}`);
+        console.log('[Environment] Ground plane updated via updateSettingsAsync:', newState);
+      }
+      // Fallback: direct property
+      else if ('groundPlane' in viewport) {
         (viewport as any).groundPlane = newState;
+        showStatus(`Ground Plane: ${newState ? 'On' : 'Off'}`);
+        console.log('[Environment] Ground plane updated via direct assignment:', newState);
       }
     } catch (err) {
-      console.error('Ground plane toggle error:', err);
+      console.error('[Environment] Ground plane toggle error:', err);
+      setGroundPlaneEnabled(!groundPlaneEnabled); // Revert on error
     }
-  }, [viewport, groundPlaneEnabled]);
+  }, [viewport, groundPlaneEnabled, showStatus]);
 
   const selectedOption = ENVIRONMENT_OPTIONS.find((e) => e.id === selectedEnv);
 
   return (
     <div className="absolute bottom-4 right-4 z-20">
-      <div className="flex flex-col gap-2">
+      <div className="flex flex-col gap-2 items-end">
+        {/* Status Message */}
+        {statusMessage && (
+          <div className="px-3 py-1.5 bg-zinc-900/90 backdrop-blur-sm border border-zinc-800 rounded-lg text-xs text-emerald-400 animate-fade-in">
+            {statusMessage}
+          </div>
+        )}
+
         {/* Environment Selector */}
         <div className="relative">
           <button
@@ -148,7 +235,7 @@ export function EnvironmentSelector({ viewport }: EnvironmentSelectorProps) {
 
           {/* Dropdown Menu */}
           {isOpen && (
-            <div className="absolute bottom-full right-0 mb-2 py-2 bg-zinc-900/95 backdrop-blur-sm border border-zinc-800 rounded-lg shadow-xl min-w-[200px]">
+            <div className="absolute bottom-full right-0 mb-2 py-2 bg-zinc-900/95 backdrop-blur-sm border border-zinc-800 rounded-lg shadow-xl min-w-[220px] max-h-[400px] overflow-y-auto">
               <div className="px-3 py-1 text-xs text-zinc-500 uppercase tracking-wide">
                 Environment
               </div>
@@ -163,10 +250,13 @@ export function EnvironmentSelector({ viewport }: EnvironmentSelectorProps) {
                   }`}
                 >
                   {option.icon}
-                  <div className="text-left">
+                  <div className="text-left flex-1">
                     <div>{option.name}</div>
                     <div className="text-xs text-zinc-500">{option.description}</div>
                   </div>
+                  {selectedEnv === option.id && (
+                    <Check className="w-4 h-4 text-emerald-500" />
+                  )}
                 </button>
               ))}
 
