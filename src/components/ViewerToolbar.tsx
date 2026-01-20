@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useMemo } from 'react';
 import { ISessionApi, IViewportApi } from '@shapediver/viewer';
 import {
   Download,
@@ -11,9 +11,9 @@ import {
   Maximize2,
   Box,
   FileType,
-  Image,
   Loader2,
   ChevronDown,
+  Info,
 } from 'lucide-react';
 
 interface ViewerToolbarProps {
@@ -27,13 +27,14 @@ interface ExportOption {
   name: string;
   icon: React.ReactNode;
   format: string;
+  requiresGrasshopper?: boolean;
 }
 
 const EXPORT_OPTIONS: ExportOption[] = [
-  { id: 'stl', name: 'STL', icon: <Box className="w-4 h-4" />, format: 'stl' },
-  { id: 'obj', name: 'OBJ', icon: <FileType className="w-4 h-4" />, format: 'obj' },
-  { id: 'gltf', name: 'glTF', icon: <Box className="w-4 h-4" />, format: 'gltf' },
-  { id: 'step', name: 'STEP', icon: <FileType className="w-4 h-4" />, format: 'step' },
+  { id: 'stl', name: 'STL', icon: <Box className="w-4 h-4" />, format: 'stl', requiresGrasshopper: true },
+  { id: 'obj', name: 'OBJ', icon: <FileType className="w-4 h-4" />, format: 'obj', requiresGrasshopper: true },
+  { id: 'gltf', name: 'glTF', icon: <Box className="w-4 h-4" />, format: 'gltf', requiresGrasshopper: true },
+  { id: 'step', name: 'STEP', icon: <FileType className="w-4 h-4" />, format: 'step', requiresGrasshopper: true },
 ];
 
 export function ViewerToolbar({
@@ -46,6 +47,27 @@ export function ViewerToolbar({
   const [isTakingScreenshot, setIsTakingScreenshot] = useState(false);
   const [showExportMenu, setShowExportMenu] = useState(false);
   const [exportStatus, setExportStatus] = useState<string | null>(null);
+
+  // Check which exports are available from the model
+  const availableExports = useMemo(() => {
+    if (!session) return [];
+    const exports = Object.values(session.exports);
+    return exports.map(e => ({
+      name: e.name?.toLowerCase() || '',
+      type: e.type?.toLowerCase() || '',
+    }));
+  }, [session]);
+
+  // Check if a specific format is available
+  const isExportAvailable = useCallback((format: string) => {
+    return availableExports.some(exp => 
+      exp.name.includes(format.toLowerCase()) || 
+      exp.type.includes(format.toLowerCase())
+    );
+  }, [availableExports]);
+
+  // Check if any exports are available
+  const hasAnyExports = availableExports.length > 0;
 
   // Reset camera to default view
   const handleResetCamera = useCallback(async () => {
@@ -138,7 +160,7 @@ export function ViewerToolbar({
       setShowExportMenu(false);
       setExportStatus(`Exporting ${format.toUpperCase()}...`);
       
-      // Find export by format name (case insensitive search)
+      // Try session exports
       const exports = Object.values(session.exports);
       const exportItem = exports.find((exp) => {
         const expName = exp.name?.toLowerCase() || '';
@@ -156,18 +178,17 @@ export function ViewerToolbar({
           if (href) {
             window.open(href, '_blank');
             setExportStatus(`${format.toUpperCase()} exported!`);
-          } else {
-            setExportStatus('Export URL not available');
+            setTimeout(() => setExportStatus(null), 3000);
+            return;
           }
-        } else {
-          setExportStatus('No export content available');
         }
-      } else {
-        // List available exports for debugging
-        console.log('Available exports:', exports.map(e => ({ name: e.name, type: e.type })));
-        setExportStatus(`${format.toUpperCase()} export not available for this model`);
       }
       
+      // List available exports for debugging
+      console.log('Available exports:', exports.map(e => ({ name: e.name, type: e.type })));
+      
+      // No export available
+      setExportStatus(`${format.toUpperCase()} not available for this model`);
       setTimeout(() => setExportStatus(null), 3000);
     } catch (err) {
       console.error('Export error:', err);
@@ -210,17 +231,44 @@ export function ViewerToolbar({
           
           {/* Export Menu */}
           {showExportMenu && (
-            <div className="absolute top-full right-0 mt-1 py-1 bg-zinc-900 border border-zinc-800 rounded-lg shadow-xl min-w-[140px]">
-              {EXPORT_OPTIONS.map((option) => (
-                <button
-                  key={option.id}
-                  onClick={() => handleExport(option.format)}
-                  className="flex items-center gap-2 w-full px-3 py-2 text-sm text-zinc-300 hover:text-white hover:bg-zinc-800 transition-colors"
-                >
-                  {option.icon}
-                  <span>{option.name}</span>
-                </button>
-              ))}
+            <div className="absolute top-full right-0 mt-1 py-1 bg-zinc-900 border border-zinc-800 rounded-lg shadow-xl min-w-[200px]">
+              {hasAnyExports ? (
+                <>
+                  {EXPORT_OPTIONS.map((option) => {
+                    const available = isExportAvailable(option.format);
+                    return (
+                      <button
+                        key={option.id}
+                        onClick={() => handleExport(option.format)}
+                        disabled={!available}
+                        className={`flex items-center gap-2 w-full px-3 py-2 text-sm transition-colors ${
+                          available
+                            ? 'text-zinc-300 hover:text-white hover:bg-zinc-800'
+                            : 'text-zinc-500 cursor-not-allowed'
+                        }`}
+                        title={!available ? 'Not available for this model' : ''}
+                      >
+                        {option.icon}
+                        <span className="flex-1 text-left">{option.name}</span>
+                        {available && (
+                          <span className="text-xs text-emerald-500">✓</span>
+                        )}
+                      </button>
+                    );
+                  })}
+                </>
+              ) : (
+                <div className="px-3 py-3 text-sm text-zinc-400">
+                  <div className="flex items-center gap-2 mb-2">
+                    <Info className="w-4 h-4 text-amber-500" />
+                    <span className="font-medium">No exports available</span>
+                  </div>
+                  <p className="text-xs text-zinc-500 leading-relaxed">
+                    This model doesn&apos;t have export components configured in Grasshopper. 
+                    Contact the model creator to add STL, OBJ, or other export options.
+                  </p>
+                </div>
+              )}
             </div>
           )}
         </div>
