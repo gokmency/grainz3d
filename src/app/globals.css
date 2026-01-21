@@ -1,7 +1,7 @@
 @import "tailwindcss";
 
 :root {
-  --background: #09090b;
+  --background: #000000;
   --foreground: #fafafa;
 }
 
@@ -16,10 +16,18 @@
   box-sizing: border-box;
 }
 
-html,
-body {
+html {
   height: 100%;
-  overflow: hidden;
+  scroll-behavior: smooth;
+}
+
+body {
+  min-height: 100%;
+}
+
+/* Noise texture for grain effect */
+.bg-noise {
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
 }
 
 body {
@@ -165,4 +173,61 @@ details[open] > summary ~ * {
 /* Slide Down Animation Class */
 .animate-slide-down {
   animation: slideDown 0.2s ease-out;
+}
+
+/* Animated accent lines */
+@keyframes drawX {
+  from {
+    transform: scaleX(0);
+  }
+  to {
+    transform: scaleX(1);
+  }
+}
+
+@keyframes drawY {
+  from {
+    transform: scaleY(0);
+  }
+  to {
+    transform: scaleY(1);
+  }
+}
+
+.animate-drawX {
+  animation: drawX 0.6s ease forwards;
+  transform-origin: 50% 50%;
+}
+
+.animate-drawY {
+  animation: drawY 0.7s ease forwards;
+  transform-origin: 50% 0%;
+}
+
+/* Fade Slide In Animations */
+@keyframes fadeSlideIn {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-fade-slide-in-1 {
+  animation: fadeSlideIn 0.6s ease-out 0.1s both;
+}
+
+.animate-fade-slide-in-2 {
+  animation: fadeSlideIn 0.6s ease-out 0.2s both;
+}
+
+.animate-fade-slide-in-3 {
+  animation: fadeSlideIn 0.6s ease-out 0.3s both;
+}
+
+.animate-fade-slide-in-4 {
+  animation: fadeSlideIn 0.6s ease-out 0.4s both;
 }

@@ -29,6 +29,10 @@ interface DynamicExportOption {
   type: string;
   icon: React.ReactNode;
   exportApi: IExportApi;
+  // Format parametresi varsa bu değerler de olabilir
+  formatValue?: number | string;
+  formatValueString?: string | number; // String format değeri (fallback)
+  formatParamId?: string;
 }
 
 // Helper to get icon based on export type/name
@@ -82,12 +86,34 @@ export function ViewerToolbar({
     }
 
     const exports = Object.values(session.exports);
-    console.log('[ViewerToolbar] Available exports:', exports.map(e => ({
-      id: e.id,
-      name: e.name,
-      type: e.type,
-      displayname: (e as any).displayname
-    })));
+    const allParams = Object.values(session.parameters);
+    const formatParam = allParams.find((p) =>
+      p.name?.toLowerCase().includes('format') ||
+      p.id?.toLowerCase().includes('format') ||
+      p.name?.toLowerCase().includes('exportformat') ||
+      p.id?.toLowerCase().includes('exportformat')
+    );
+
+    if (formatParam) {
+      const formatChoices = (formatParam as any).choices;
+      if (Array.isArray(formatChoices) && formatChoices.length > 0) {
+        const formatExports: DynamicExportOption[] = [];
+        formatChoices.forEach((choice, index) => {
+          formatExports.push({
+            id: `${exports[0].id}-format-${index}`,
+            name: String(choice),
+            displayName: formatExportDisplayName(String(choice), index),
+            type: exports[0].type || '',
+            icon: getExportIcon(String(choice), ''),
+            exportApi: exports[0],
+            formatValue: index,
+            formatValueString: choice,
+            formatParamId: formatParam.id,
+          });
+        });
+        return formatExports;
+      }
+    }
 
     return exports.map((exp, index) => ({
       id: exp.id,
@@ -195,13 +221,37 @@ export function ViewerToolbar({
       setShowExportMenu(false);
       setExportStatus(`Exporting ${exportOption.displayName}...`);
 
-      // Request the export directly using the API reference
-      const result = await exportOption.exportApi.request();
-      console.log('[ViewerToolbar] Export result:', result);
+      const allParams = Object.values(session.parameters);
+      const formatParam = allParams.find((p) =>
+        p.name?.toLowerCase().includes('format') ||
+        p.id?.toLowerCase().includes('format') ||
+        p.name?.toLowerCase().includes('exportformat') ||
+        p.id?.toLowerCase().includes('exportformat')
+      );
 
-      if (result.content && result.content.length > 0) {
-        // Open download link
-        const href = result.content[0].href;
+      let result: any;
+
+      if (formatParam && exportOption.formatParamId) {
+        const formatParamType = formatParam.type;
+        const oldValue = formatParam.value;
+        let finalFormatValue: string | number = exportOption.formatValue ?? oldValue;
+
+        if (formatParamType === 'StringList') {
+          finalFormatValue = typeof oldValue === 'string' ? String(exportOption.formatValue ?? oldValue) : (exportOption.formatValue ?? oldValue);
+        } else if (formatParamType === 'String') {
+          finalFormatValue = String(exportOption.formatValueString ?? exportOption.formatValue ?? oldValue);
+        }
+
+        formatParam.value = finalFormatValue;
+        await session.customize();
+      }
+
+      result = await exportOption.exportApi.request();
+
+      const exportResult = Array.isArray(result) ? result[0] : result;
+
+      if (exportResult?.content && exportResult.content.length > 0) {
+        const href = exportResult.content[0].href;
         if (href) {
           window.open(href, '_blank');
           setExportStatus(`${exportOption.displayName} exported!`);
@@ -209,6 +259,9 @@ export function ViewerToolbar({
           return;
         }
       }
+
+      setExportStatus('Export failed - no data available for this format.');
+      setTimeout(() => setExportStatus(null), 4000);
 
       // No content available
       setExportStatus(`Export failed - no content available`);
