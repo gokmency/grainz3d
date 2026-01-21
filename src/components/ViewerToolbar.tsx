@@ -233,13 +233,21 @@ export function ViewerToolbar({
 
       if (formatParam && exportOption.formatParamId) {
         const formatParamType = formatParam.type;
-        const oldValue = formatParam.value;
-        let finalFormatValue: string | number = exportOption.formatValue ?? oldValue;
+        const oldValue = formatParam.value as string | number | undefined;
+        let finalFormatValue: string | number;
+
+        if (exportOption.formatValue !== undefined) {
+          finalFormatValue = exportOption.formatValue;
+        } else if (oldValue !== undefined && (typeof oldValue === 'string' || typeof oldValue === 'number')) {
+          finalFormatValue = oldValue;
+        } else {
+          finalFormatValue = '';
+        }
 
         if (formatParamType === 'StringList') {
-          finalFormatValue = typeof oldValue === 'string' ? String(exportOption.formatValue ?? oldValue) : (exportOption.formatValue ?? oldValue);
+          finalFormatValue = typeof oldValue === 'string' ? String(exportOption.formatValue ?? oldValue) : (exportOption.formatValue ?? oldValue ?? '');
         } else if (formatParamType === 'String') {
-          finalFormatValue = String(exportOption.formatValueString ?? exportOption.formatValue ?? oldValue);
+          finalFormatValue = String(exportOption.formatValueString ?? exportOption.formatValue ?? oldValue ?? '');
         }
 
         formatParam.value = finalFormatValue;
