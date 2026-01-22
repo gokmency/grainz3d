@@ -4,6 +4,7 @@ import React, { useState } from "react";
 import { Menu, X, ArrowRight, Play, MessageSquare } from "lucide-react";
 import { motion } from "framer-motion";
 import Link from "next/link";
+import { FeedbackModal } from "@/components/ui/feedback-modal";
 
 interface NavLink {
   label: string;
@@ -58,6 +59,7 @@ const ResponsiveHeroBanner: React.FC<ResponsiveHeroBannerProps> = ({
   onLanguageChange,
 }) => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [isFeedbackModalOpen, setIsFeedbackModalOpen] = useState(false);
 
   const feedbackText = language === "en" 
     ? "Still in development - Your feedback helps us improve!"
@@ -82,16 +84,16 @@ const ResponsiveHeroBanner: React.FC<ResponsiveHeroBannerProps> = ({
             transition={{ duration: 0.5 }}
             className="mx-auto max-w-4xl"
           >
-            <a
-              href="mailto:feedback@grainz3d.com?subject=Feedback"
-              className="group flex items-center justify-center gap-3 rounded-2xl border-[0.75px] border-white/20 bg-white/10 px-6 py-4 backdrop-blur-sm transition hover:bg-white/15 hover:border-white/30 ring-1 ring-white/10"
+            <button
+              onClick={() => setIsFeedbackModalOpen(true)}
+              className="group flex items-center justify-center gap-3 rounded-2xl border-[0.75px] border-white/20 bg-white/10 px-6 py-4 backdrop-blur-sm transition hover:bg-white/15 hover:border-white/30 ring-1 ring-white/10 w-full"
             >
               <MessageSquare className="h-5 w-5 text-white/90 group-hover:text-white transition" />
               <span className="text-base font-medium text-white/90 group-hover:text-white transition">
                 {feedbackText}
               </span>
               <ArrowRight className="h-4 w-4 text-white/70 group-hover:text-white transition" />
-            </a>
+            </button>
           </motion.div>
         </div>
       </div>
@@ -321,6 +323,13 @@ const ResponsiveHeroBanner: React.FC<ResponsiveHeroBannerProps> = ({
           )}
         </div>
       </div>
+
+      {/* Feedback Modal */}
+      <FeedbackModal
+        isOpen={isFeedbackModalOpen}
+        onClose={() => setIsFeedbackModalOpen(false)}
+        language={language}
+      />
     </section>
   );
 };
