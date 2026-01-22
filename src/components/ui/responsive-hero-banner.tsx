@@ -1,7 +1,8 @@
 "use client";
 
 import React, { useState } from "react";
-import { Menu, X, ArrowRight, Play } from "lucide-react";
+import { Menu, X, ArrowRight, Play, MessageSquare } from "lucide-react";
+import { motion } from "framer-motion";
 import Link from "next/link";
 
 interface NavLink {
@@ -58,6 +59,10 @@ const ResponsiveHeroBanner: React.FC<ResponsiveHeroBannerProps> = ({
 }) => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
+  const feedbackText = language === "en" 
+    ? "Still in development - Your feedback helps us improve!"
+    : "Geliştirme aşamasında - Görüşleriniz bize yardımcı olur!";
+
   return (
     <section className="w-full isolate min-h-screen overflow-hidden relative">
       <img
@@ -67,6 +72,29 @@ const ResponsiveHeroBanner: React.FC<ResponsiveHeroBannerProps> = ({
       />
       <div className="pointer-events-none absolute inset-0 ring-1 ring-black/30" />
       <div className="absolute inset-0 bg-gradient-to-b from-black/60 via-black/40 to-black/80" />
+
+      {/* Feedback Banner */}
+      <div className="z-20 relative pt-4">
+        <div className="container mx-auto px-4">
+          <motion.div
+            initial={{ opacity: 0, y: -20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5 }}
+            className="mx-auto max-w-4xl"
+          >
+            <a
+              href="mailto:feedback@grainz3d.com?subject=Feedback"
+              className="group flex items-center justify-center gap-3 rounded-2xl border-[0.75px] border-white/20 bg-white/10 px-6 py-4 backdrop-blur-sm transition hover:bg-white/15 hover:border-white/30 ring-1 ring-white/10"
+            >
+              <MessageSquare className="h-5 w-5 text-white/90 group-hover:text-white transition" />
+              <span className="text-base font-medium text-white/90 group-hover:text-white transition">
+                {feedbackText}
+              </span>
+              <ArrowRight className="h-4 w-4 text-white/70 group-hover:text-white transition" />
+            </a>
+          </motion.div>
+        </div>
+      </div>
 
       <header className="z-10 xl:top-4 relative">
         <div className="mx-6">
