@@ -73,7 +73,10 @@ export const FeedbackModal: React.FC<FeedbackModalProps> = ({
       const data = await response.json();
 
       if (!response.ok) {
-        throw new Error(data.error || t.error);
+        const errorMsg = data.details 
+          ? `${data.error}: ${data.details}` 
+          : data.error || t.error;
+        throw new Error(errorMsg);
       }
 
       setSubmitStatus("success");
@@ -88,7 +91,13 @@ export const FeedbackModal: React.FC<FeedbackModalProps> = ({
       }, 2000);
     } catch (error) {
       setSubmitStatus("error");
-      setErrorMessage(error instanceof Error ? error.message : t.error);
+      if (error instanceof Error) {
+        setErrorMessage(error.message);
+      } else if (typeof error === 'string') {
+        setErrorMessage(error);
+      } else {
+        setErrorMessage(t.error);
+      }
     } finally {
       setIsSubmitting(false);
     }

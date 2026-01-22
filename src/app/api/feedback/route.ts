@@ -1,7 +1,7 @@
 import { Resend } from 'resend';
 import { NextRequest, NextResponse } from 'next/server';
 
-const resend = new Resend(process.env.RESEND_API_KEY);
+const resend = process.env.RESEND_API_KEY ? new Resend(process.env.RESEND_API_KEY) : null;
 
 // HTML escape function for security
 function escapeHtml(text: string): string {
@@ -17,6 +17,15 @@ function escapeHtml(text: string): string {
 
 export async function POST(request: NextRequest) {
   try {
+    // Check if Resend is configured
+    if (!resend || !process.env.RESEND_API_KEY) {
+      console.error('RESEND_API_KEY is not configured');
+      return NextResponse.json(
+        { error: 'Email service is not configured. Please contact support.' },
+        { status: 500 }
+      );
+    }
+
     const body = await request.json();
     const { name, email, message } = body;
 
@@ -70,7 +79,10 @@ export async function POST(request: NextRequest) {
     if (error) {
       console.error('Resend error:', error);
       return NextResponse.json(
-        { error: 'Failed to send email' },
+        { 
+          error: 'Failed to send email',
+          details: process.env.NODE_ENV === 'development' ? String(error) : undefined
+        },
         { status: 500 }
       );
     }
@@ -81,8 +93,12 @@ export async function POST(request: NextRequest) {
     );
   } catch (error) {
     console.error('Feedback API error:', error);
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
     return NextResponse.json(
-      { error: 'Internal server error' },
+      { 
+        error: 'Internal server error',
+        details: process.env.NODE_ENV === 'development' ? errorMessage : undefined
+      },
       { status: 500 }
     );
   }
