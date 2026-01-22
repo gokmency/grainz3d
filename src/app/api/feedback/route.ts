@@ -51,10 +51,21 @@ export async function POST(request: NextRequest) {
     const safeEmail = escapeHtml(email);
     const safeMessage = escapeHtml(message).replace(/\n/g, '<br>');
 
+    // Get recipient emails from environment variables
+    // Default to grainzguild@gmail.com if not specified
+    const primaryEmail = process.env.FEEDBACK_EMAIL_PRIMARY || 'grainzguild@gmail.com';
+    const secondaryEmail = process.env.FEEDBACK_EMAIL_SECONDARY;
+    
+    // Build recipients array
+    const recipients = [primaryEmail];
+    if (secondaryEmail) {
+      recipients.push(secondaryEmail);
+    }
+
     // Send email using Resend
     const { data, error } = await resend.emails.send({
       from: 'GRAINZ 3D Feedback <onboarding@resend.dev>', // You can change this after verifying your domain
-      to: ['grainzguild@gmail.com'],
+      to: recipients,
       subject: `Feedback from ${safeName} - GRAINZ 3D`,
       html: `
         <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
