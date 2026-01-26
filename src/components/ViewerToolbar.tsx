@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useCallback, useMemo } from 'react';
+import { useState, useCallback, useMemo, useEffect } from 'react';
 import { ISessionApi, IViewportApi, IExportApi } from '@shapediver/viewer';
 import {
   Download,
@@ -78,6 +78,7 @@ export function ViewerToolbar({
   const [isTakingScreenshot, setIsTakingScreenshot] = useState(false);
   const [showExportMenu, setShowExportMenu] = useState(false);
   const [exportStatus, setExportStatus] = useState<string | null>(null);
+  const [selectedExport, setSelectedExport] = useState<DynamicExportOption | null>(null);
 
   // Get all available exports from the model dynamically
   const dynamicExports = useMemo((): DynamicExportOption[] => {
@@ -127,6 +128,13 @@ export function ViewerToolbar({
 
   // Check if any exports are available
   const hasAnyExports = dynamicExports.length > 0;
+
+  // Set default selected export when exports are available
+  useEffect(() => {
+    if (dynamicExports.length > 0 && !selectedExport) {
+      setSelectedExport(dynamicExports[0]);
+    }
+  }, [dynamicExports, selectedExport]);
 
   // Reset camera to default view
   const handleResetCamera = useCallback(async () => {
@@ -219,6 +227,7 @@ export function ViewerToolbar({
     try {
       setIsExporting(true);
       setShowExportMenu(false);
+      setSelectedExport(exportOption);
       setExportStatus(`Exporting ${exportOption.displayName}...`);
 
       const allParams = Object.values(session.parameters);
@@ -307,9 +316,11 @@ export function ViewerToolbar({
             {isExporting ? (
               <Loader2 className="w-4 h-4 animate-spin" />
             ) : (
-              <Download className="w-4 h-4" />
+              selectedExport?.icon || <Download className="w-4 h-4" />
             )}
-            <span className="hidden sm:inline">Export</span>
+            <span className="hidden sm:inline">
+              {selectedExport ? selectedExport.displayName.toUpperCase() : 'Export'}
+            </span>
             <ChevronDown className="w-3 h-3" />
           </button>
 
