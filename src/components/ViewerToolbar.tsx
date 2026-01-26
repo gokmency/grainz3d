@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useCallback, useMemo, useEffect } from 'react';
+import { useState, useCallback, useMemo } from 'react';
 import { ISessionApi, IViewportApi, IExportApi } from '@shapediver/viewer';
 import {
   Download,
@@ -61,7 +61,39 @@ function formatExportDisplayName(name: string, index: number): string {
   if (!name || name.trim() === '') {
     return `Export ${index + 1}`;
   }
-  // Capitalize first letter of each word
+  
+  const trimmedName = name.trim().toLowerCase();
+  
+  // Common format extensions - show them in uppercase
+  const formatExtensions: { [key: string]: string } = {
+    'stl': 'STL',
+    '3dm': '3DM',
+    'obj': 'OBJ',
+    'gltf': 'GLTF',
+    'glb': 'GLB',
+    'step': 'STEP',
+    'stp': 'STEP',
+    'iges': 'IGES',
+    'igs': 'IGES',
+    'fbx': 'FBX',
+    'dae': 'DAE',
+    'ply': 'PLY',
+    '3ds': '3DS',
+  };
+  
+  // Check if the name contains a format extension
+  for (const [key, value] of Object.entries(formatExtensions)) {
+    if (trimmedName.includes(key)) {
+      return value;
+    }
+  }
+  
+  // If it's a short format name (2-5 characters, likely an extension)
+  if (trimmedName.length <= 5 && /^[a-z0-9]+$/i.test(trimmedName)) {
+    return trimmedName.toUpperCase();
+  }
+  
+  // Capitalize first letter of each word for longer names
   return name
     .split(/[\s_-]+/)
     .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
@@ -78,7 +110,6 @@ export function ViewerToolbar({
   const [isTakingScreenshot, setIsTakingScreenshot] = useState(false);
   const [showExportMenu, setShowExportMenu] = useState(false);
   const [exportStatus, setExportStatus] = useState<string | null>(null);
-  const [selectedExport, setSelectedExport] = useState<DynamicExportOption | null>(null);
 
   // Get all available exports from the model dynamically
   const dynamicExports = useMemo((): DynamicExportOption[] => {
@@ -100,12 +131,13 @@ export function ViewerToolbar({
       if (Array.isArray(formatChoices) && formatChoices.length > 0) {
         const formatExports: DynamicExportOption[] = [];
         formatChoices.forEach((choice, index) => {
+          const choiceString = String(choice);
           formatExports.push({
             id: `${exports[0].id}-format-${index}`,
-            name: String(choice),
-            displayName: formatExportDisplayName(String(choice), index),
+            name: choiceString,
+            displayName: formatExportDisplayName(choiceString, index),
             type: exports[0].type || '',
-            icon: getExportIcon(String(choice), ''),
+            icon: getExportIcon(choiceString, ''),
             exportApi: exports[0],
             formatValue: index,
             formatValueString: choice,
@@ -116,25 +148,48 @@ export function ViewerToolbar({
       }
     }
 
-    return exports.map((exp, index) => ({
-      id: exp.id,
-      name: exp.name || '',
-      displayName: formatExportDisplayName(exp.name || (exp as any).displayname || '', index),
-      type: exp.type || '',
-      icon: getExportIcon(exp.name || '', exp.type || ''),
-      exportApi: exp,
-    }));
+    // If no format param, try to extract format from export API itself
+    // Common formats: STL, 3DM, OBJ, etc.
+    // If multiple exports, assume each has a different format
+    const commonFormats = ['STL', '3DM', 'OBJ', 'GLTF', 'GLB', 'STEP', 'IGES', 'FBX'];
+    
+    return exports.map((exp, index) => {
+      // Try to extract format from export name or ID
+      const exportName = (exp.name || '').toLowerCase();
+      const exportId = exp.id.toLowerCase();
+      
+      // Check if name or ID contains format info
+      let detectedFormat = '';
+      for (const format of commonFormats) {
+        if (exportName.includes(format.toLowerCase()) || exportId.includes(format.toLowerCase())) {
+          detectedFormat = format;
+          break;
+        }
+      }
+      
+      // If multiple exports and no format detected, use index-based format mapping
+      if (!detectedFormat && exports.length > 1) {
+        // Common export formats in order
+        const formatByIndex = ['STL', '3DM', 'OBJ', 'GLTF', 'GLB', 'STEP'];
+        detectedFormat = formatByIndex[index] || `Export ${index + 1}`;
+      }
+      
+      // Use detected format or fallback to formatted name
+      const displayName = detectedFormat || formatExportDisplayName(exp.name || (exp as any).displayname || '', index);
+      
+      return {
+        id: exp.id,
+        name: exp.name || '',
+        displayName: displayName,
+        type: exp.type || '',
+        icon: getExportIcon(detectedFormat || exp.name || '', exp.type || ''),
+        exportApi: exp,
+      };
+    });
   }, [session]);
 
   // Check if any exports are available
   const hasAnyExports = dynamicExports.length > 0;
-
-  // Set default selected export when exports are available
-  useEffect(() => {
-    if (dynamicExports.length > 0 && !selectedExport) {
-      setSelectedExport(dynamicExports[0]);
-    }
-  }, [dynamicExports, selectedExport]);
 
   // Reset camera to default view
   const handleResetCamera = useCallback(async () => {
@@ -227,7 +282,6 @@ export function ViewerToolbar({
     try {
       setIsExporting(true);
       setShowExportMenu(false);
-      setSelectedExport(exportOption);
       setExportStatus(`Exporting ${exportOption.displayName}...`);
 
       const allParams = Object.values(session.parameters);
@@ -316,11 +370,9 @@ export function ViewerToolbar({
             {isExporting ? (
               <Loader2 className="w-4 h-4 animate-spin" />
             ) : (
-              selectedExport?.icon || <Download className="w-4 h-4" />
+              <Download className="w-4 h-4" />
             )}
-            <span className="hidden sm:inline">
-              {selectedExport ? selectedExport.displayName.toUpperCase() : 'Export'}
-            </span>
+            <span className="hidden sm:inline">Export</span>
             <ChevronDown className="w-3 h-3" />
           </button>
 
