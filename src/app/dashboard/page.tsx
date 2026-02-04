@@ -3,7 +3,8 @@ import Link from 'next/link'
 import { createClient } from '@/lib/supabase/server'
 import { getAllPresets } from '@/app/presets/actions'
 import { MODELS, getModelById } from '@/lib/config'
-import { Bookmark, Settings2, Box, ChevronRight, Sparkles, Home, Star } from 'lucide-react'
+import { Bookmark, Box, ChevronRight, Star } from 'lucide-react'
+import { DashboardLayout } from '@/components/ui/dashboard-layout'
 
 export default async function DashboardPage() {
   const supabase = await createClient()
@@ -31,86 +32,12 @@ export default async function DashboardPage() {
   const displayName = profile?.full_name || profile?.email || user.email || 'User'
 
   return (
-    <div className="min-h-screen grid lg:grid-cols-[320px_1fr]">
-      {/* Left Sidebar - Login page theme */}
-      <aside className="relative hidden lg:flex flex-col justify-between bg-gradient-to-br from-primary/90 via-primary to-primary/80 p-8 text-primary-foreground">
-        <div className="relative z-20">
-          <Link
-            href="/"
-            className="flex items-center gap-2 text-lg font-semibold text-primary-foreground hover:opacity-90 transition-opacity"
-          >
-            <div className="size-8 rounded-lg bg-primary-foreground/10 backdrop-blur-sm flex items-center justify-center">
-              <Sparkles className="size-4" />
-            </div>
-            <span>Grainz3D</span>
-          </Link>
-        </div>
-
-        <div className="relative z-20 space-y-6">
-          <div>
-            <p className="text-sm text-primary-foreground/60 mb-1">Welcome back</p>
-            <p className="font-semibold text-lg truncate">{displayName}</p>
-          </div>
-          <nav className="space-y-2">
-            <Link
-              href="/"
-              className="flex items-center gap-3 px-4 py-3 rounded-lg text-primary-foreground/90 hover:bg-primary-foreground/10 transition-colors"
-            >
-              <Home className="w-4 h-4" />
-              <span>Home</span>
-            </Link>
-            <Link
-              href="/settings"
-              className="flex items-center gap-3 px-4 py-3 rounded-lg text-primary-foreground/90 hover:bg-primary-foreground/10 transition-colors"
-            >
-              <Settings2 className="w-4 h-4" />
-              <span>Settings</span>
-            </Link>
-          </nav>
-        </div>
-
-        <div className="relative z-20 flex flex-col gap-4 text-sm text-primary-foreground/60">
-          <div className="flex items-center gap-2">
-            <Box className="w-4 h-4" />
-            <span>{MODELS.length} model{MODELS.length !== 1 ? 's' : ''} available</span>
-          </div>
-          <div className="flex items-center gap-2">
-            <Bookmark className="w-4 h-4" />
-            <span>{presets.length} preset{presets.length !== 1 ? 's' : ''} saved</span>
-          </div>
-        </div>
-
-        {/* Decorative elements - same as login */}
-        <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.05)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.05)_1px,transparent_1px)] bg-[size:20px_20px]" />
-        <div className="absolute top-1/4 right-1/4 size-64 bg-primary-foreground/10 rounded-full blur-3xl" />
-        <div className="absolute bottom-1/4 left-1/4 size-96 bg-primary-foreground/5 rounded-full blur-3xl" />
-      </aside>
-
-      {/* Main Content */}
-      <main className="flex flex-col min-h-screen bg-background">
-        {/* Mobile header */}
-        <header className="lg:hidden flex items-center justify-between px-4 py-4 border-b border-border">
-          <Link
-            href="/"
-            className="flex items-center gap-2 text-lg font-semibold text-foreground"
-          >
-            <div className="size-8 rounded-lg bg-primary/10 flex items-center justify-center">
-              <Sparkles className="size-4 text-primary" />
-            </div>
-            <span>Grainz3D</span>
-          </Link>
-          <div className="flex gap-2">
-            <Link
-              href="/settings"
-              className="flex items-center gap-2 px-3 py-2 rounded-lg border border-border text-muted-foreground hover:text-foreground hover:border-primary/50 transition-colors text-sm"
-            >
-              <Settings2 className="w-4 h-4" />
-              Settings
-            </Link>
-          </div>
-        </header>
-
-        <div className="flex-1 p-6 lg:p-10 overflow-auto">
+    <DashboardLayout
+      displayName={displayName}
+      presetCount={presets.length}
+      activeNav="dashboard"
+    >
+      <div className="flex-1 p-6 lg:p-10 overflow-auto">
           <div className="max-w-4xl mx-auto">
             {/* Welcome - mobile only */}
             <div className="lg:hidden mb-8">
@@ -191,10 +118,14 @@ export default async function DashboardPage() {
                           {modelName}
                         </h3>
                         <div className="space-y-2">
-                          {modelPresets.map((preset) => (
+                          {modelPresets.map((preset) => {
+                            const configParam = Object.keys(preset.values).length > 0
+                              ? `&config=${encodeURIComponent(Buffer.from(JSON.stringify(preset.values)).toString('base64'))}`
+                              : ''
+                            return (
                             <Link
                               key={preset.id}
-                              href={`/configurator?model=${modelId}`}
+                              href={`/configurator?model=${modelId}${configParam}`}
                               className="flex items-center gap-3 px-4 py-3 rounded-lg bg-muted/50 hover:bg-primary/5 border border-transparent hover:border-primary/20 transition-all group"
                             >
                               <Bookmark className="w-4 h-4 text-muted-foreground group-hover:text-primary shrink-0 transition-colors" />
@@ -207,7 +138,8 @@ export default async function DashboardPage() {
                               </span>
                               <ChevronRight className="w-4 h-4 text-muted-foreground group-hover:text-primary shrink-0 transition-colors" />
                             </Link>
-                          ))}
+                            )
+                          })}
                         </div>
                       </div>
                     )
@@ -217,7 +149,6 @@ export default async function DashboardPage() {
             </section>
           </div>
         </div>
-      </main>
-    </div>
+    </DashboardLayout>
   )
 }

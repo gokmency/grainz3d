@@ -90,13 +90,55 @@ export async function signOut() {
   redirect('/')
 }
 
+export async function uploadAvatar(formData: FormData): Promise<{ url?: string; error?: string }> {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) return { error: 'Not authenticated' }
+
+  const file = formData.get('avatar') as File | null
+  if (!file || file.size === 0) return { error: 'No file selected' }
+
+  const allowedTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp']
+  if (!allowedTypes.includes(file.type)) {
+    return { error: 'Invalid file type. Use JPEG, PNG, GIF, or WebP.' }
+  }
+  if (file.size > 1024 * 1024) return { error: 'File too large. Max 1MB.' }
+
+  const ext = file.name.split('.').pop() || 'jpg'
+  const path = `${user.id}/avatar-${Date.now()}.${ext}`
+
+  const { error } = await supabase.storage
+    .from('avatars')
+    .upload(path, file, { upsert: true })
+
+  if (error) {
+    console.error('Avatar upload error:', error)
+    return { error: error.message }
+  }
+
+  const { data: { publicUrl } } = supabase.storage
+    .from('avatars')
+    .getPublicUrl(path)
+
+  return { url: publicUrl }
+}
+
 export async function updateProfile(formData: FormData) {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return { error: 'Not authenticated' }
 
+  let avatarUrl = formData.get('avatar_url') as string | null
+
+  // If avatar file uploaded, use that URL instead
+  const file = formData.get('avatar') as File | null
+  if (file && file.size > 0) {
+    const uploadResult = await uploadAvatar(formData)
+    if (uploadResult.error) return { error: uploadResult.error }
+    if (uploadResult.url) avatarUrl = uploadResult.url
+  }
+
   const fullName = formData.get('full_name') as string | null
-  const avatarUrl = formData.get('avatar_url') as string | null
 
   const { error } = await supabase
     .from('profiles')

@@ -6,6 +6,10 @@ A modern, dark-themed parametric product configurator built with **Next.js 14+ (
 
 ## Features
 
+- 🔐 **Authentication** - Email/password auth via Supabase (login, signup, password reset)
+- 📊 **User Dashboard** - Model selection, preset management, profile settings
+- 💾 **Cloud Presets** - Save and sync presets across devices (Supabase)
+- ⭐ **Favorites** - Mark presets as favorites for quick access
 - 🎨 **Dynamic Parameter UI** - Automatically generates the correct input type for each parameter:
   - **Number (Int/Float)** → Range Slider
   - **Boolean** → Toggle Switch
@@ -19,7 +23,7 @@ A modern, dark-themed parametric product configurator built with **Next.js 14+ (
 - 🔀 **Multi-Model Support** - Switch between multiple ShapeDiver models via environment variables
 - 📸 **Screenshot Export** - Download high-quality PNG screenshots
 - 🌍 **Environment Maps** - Multiple lighting environments (Studio, Nature, Urban, etc.)
-- 💾 **Preset System** - Save and load parameter configurations
+- 💾 **Preset System** - Save and load parameter configurations (synced to Supabase)
 - 🔗 **Share URL** - Generate shareable links with current configuration
 
 ## Tech Stack
@@ -28,6 +32,7 @@ A modern, dark-themed parametric product configurator built with **Next.js 14+ (
 - **Language:** TypeScript
 - **Styling:** Tailwind CSS
 - **3D Viewer:** @shapediver/viewer
+- **Auth & Database:** Supabase (@supabase/ssr, @supabase/supabase-js)
 - **Icons:** Lucide React
 
 ## Getting Started
@@ -46,14 +51,14 @@ cd shapediver-configurator
 npm install
 ```
 
-2. Configure your ShapeDiver credentials:
+2. Configure environment variables:
 
 ```bash
 # Copy the example environment file
 cp .env.example .env.local
 ```
 
-3. Edit `.env.local` with your ShapeDiver credentials:
+3. Edit `.env.local` with your credentials:
 
 **Single Model Setup:**
 ```env
@@ -77,15 +82,37 @@ NEXT_PUBLIC_SHAPEDIVER_MODEL_2_URL=https://sdrXXXX.eu-central-1.shapediver.com
 NEXT_PUBLIC_SHAPEDIVER_MODEL_2_DESCRIPTION=Design your custom table
 
 # Add up to 10 models (MODEL_3, MODEL_4, etc.)
+
+# Supabase (required for auth and presets)
+NEXT_PUBLIC_SUPABASE_URL=https://your-project.supabase.co
+NEXT_PUBLIC_SUPABASE_ANON_KEY=your-anon-key
+NEXT_PUBLIC_SITE_URL=http://localhost:3000
 ```
 
-4. Start the development server:
+4. Set up Supabase (for auth and presets):
+
+- Create a project at [Supabase Dashboard](https://supabase.com/dashboard)
+- Run migrations in `supabase/migrations/` (see [supabase/README.md](supabase/README.md)):
+  - `20250126000000_create_profiles.sql`
+  - `20250126100000_create_presets.sql`
+- In Supabase Auth settings, add your redirect URLs (e.g. `http://localhost:3000/auth/callback`)
+- (Optional) Customize email templates in Supabase Dashboard: Authentication > Email Templates (e.g. Confirm signup, Reset password)
+
+5. Start the development server:
 
 ```bash
 npm run dev
 ```
 
-5. Open [http://localhost:3000](http://localhost:3000) in your browser.
+6. Open [http://localhost:3000](http://localhost:3000) in your browser.
+
+### Auth Flow
+
+- **Signup** → Supabase sends a confirmation email. User must verify before first login.
+- **Login** → Redirects to Dashboard
+- **Dashboard** → Select a model to open the configurator
+- **Presets** → Saved to Supabase, synced across devices
+- **Settings** → Update profile (name, avatar URL)
 
 ## Finding Your ShapeDiver Credentials
 
@@ -108,22 +135,26 @@ Make sure to add your development domain (e.g., `localhost`) to the **"Allowed d
 shapediver-configurator/
 ├── src/
 │   ├── app/
-│   │   ├── globals.css        # Global styles + custom scrollbar
-│   │   ├── layout.tsx         # Root layout
-│   │   └── page.tsx           # Main page (dynamic import for SSR)
+│   │   ├── auth/              # Auth actions, callback
+│   │   ├── configurator/      # 3D configurator page
+│   │   ├── dashboard/        # User dashboard
+│   │   ├── login/             # Login page
+│   │   ├── signup/            # Signup page
+│   │   ├── settings/         # Profile settings
+│   │   ├── presets/           # Preset server actions
+│   │   └── ...
 │   ├── components/
 │   │   ├── ShapeDiverViewer.tsx  # Main viewer + session management
+│   │   ├── PresetSelector.tsx    # Preset CRUD (Supabase)
 │   │   ├── ParameterPanel.tsx    # Grouped parameter list
-│   │   ├── ParameterInput.tsx    # Dynamic input components
-│   │   └── index.ts
-│   ├── hooks/
-│   │   └── useDebounce.ts     # Debounce utility for updates
+│   │   └── ...
 │   ├── lib/
-│   │   └── config.ts          # ShapeDiver configuration
+│   │   ├── config.ts          # ShapeDiver configuration
+│   │   └── supabase/          # Supabase client (browser, server, middleware)
 │   └── types/
-│       └── shapediver.ts      # TypeScript types
-├── .env.example               # Example environment variables
-├── .env.local                 # Your local configuration (gitignored)
+├── supabase/
+│   └── migrations/            # SQL migrations (profiles, presets)
+├── .env.example
 └── README.md
 ```
 

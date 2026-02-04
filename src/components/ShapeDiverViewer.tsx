@@ -366,7 +366,7 @@ export function ShapeDiverViewer({ className = '', initialModel }: ShapeDiverVie
         {isReady && (
           <div className="p-4 border-t border-zinc-800 flex flex-col gap-2">
             <div className="flex gap-2">
-              <ShareURL session={session} parameters={parameters} />
+              <ShareURL session={session} parameters={parameters} modelId={currentModel?.id} />
               <ARViewButton viewport={viewport} session={session} />
             </div>
             <div className="flex gap-2">

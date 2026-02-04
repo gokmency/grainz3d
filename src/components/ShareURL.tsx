@@ -2,35 +2,54 @@
 
 import { useState, useCallback, useEffect } from 'react';
 import { ISessionApi, IParameterApi } from '@shapediver/viewer';
-import { Share2, Copy, Check, Link2, QrCode, X } from 'lucide-react';
+import { Share2, Copy, Check, Link2, QrCode, X, Bookmark } from 'lucide-react';
+import { createPreset } from '@/app/presets/actions';
 
 interface ShareURLProps {
   session: ISessionApi | null;
   parameters: IParameterApi<unknown>[];
+  modelId?: string;
 }
 
-export function ShareURL({ session, parameters }: ShareURLProps) {
+export function ShareURL({ session, parameters, modelId }: ShareURLProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [shareUrl, setShareUrl] = useState<string>('');
   const [copied, setCopied] = useState(false);
   const [showQR, setShowQR] = useState(false);
+  const [showSavePreset, setShowSavePreset] = useState(false);
+  const [presetName, setPresetName] = useState('');
+  const [saveStatus, setSaveStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle');
+  const [saveError, setSaveError] = useState<string | null>(null);
+
+  // Get current parameter state
+  const getCurrentState = useCallback((): Record<string, string | number | boolean> => {
+    if (!session || parameters.length === 0) return {};
+    const state: Record<string, string | number | boolean> = {};
+    parameters.forEach((param) => {
+      if (param.value !== undefined) {
+        state[param.id] = param.value as string | number | boolean;
+      }
+    });
+    return state;
+  }, [session, parameters]);
 
   // Generate shareable URL with current parameter state
   const generateShareUrl = useCallback(() => {
     if (!session || parameters.length === 0) return '';
 
     try {
-      // Collect current parameter values
-      const state: Record<string, string | number | boolean> = {};
-      
-      parameters.forEach((param) => {
-        if (param.value !== undefined && param.value !== param.defval) {
-          state[param.id] = param.value as string | number | boolean;
+      const state = getCurrentState();
+      // Only include non-default values for share URL
+      const shareState: Record<string, string | number | boolean> = {};
+      Object.entries(state).forEach(([id, value]) => {
+        const param = parameters.find((p) => p.id === id);
+        if (param && value !== param.defval) {
+          shareState[id] = value;
         }
       });
 
       // Encode state to base64
-      const encodedState = btoa(JSON.stringify(state));
+      const encodedState = btoa(JSON.stringify(shareState));
       
       // Build URL
       const url = new URL(window.location.href);
@@ -41,7 +60,7 @@ export function ShareURL({ session, parameters }: ShareURLProps) {
       console.error('Error generating share URL:', err);
       return window.location.href;
     }
-  }, [session, parameters]);
+  }, [session, parameters, getCurrentState]);
 
   // Update share URL when dialog opens
   useEffect(() => {
@@ -69,6 +88,27 @@ export function ShareURL({ session, parameters }: ShareURLProps) {
       setTimeout(() => setCopied(false), 2000);
     }
   }, [shareUrl]);
+
+  const handleSaveAsPreset = useCallback(async () => {
+    if (!modelId || !presetName.trim()) return;
+    setSaveStatus('loading');
+    setSaveError(null);
+    try {
+      const values = getCurrentState();
+      const result = await createPreset(modelId, presetName.trim(), values);
+      if (result?.error) {
+        setSaveError(result.error);
+        setSaveStatus('error');
+      } else {
+        setSaveStatus('success');
+        setPresetName('');
+        setShowSavePreset(false);
+      }
+    } catch (err) {
+      setSaveError('Failed to save preset');
+      setSaveStatus('error');
+    }
+  }, [modelId, presetName, getCurrentState]);
 
   // Generate QR code URL using external service
   const qrCodeUrl = shareUrl
@@ -180,6 +220,57 @@ export function ShareURL({ session, parameters }: ShareURLProps) {
                   </div>
                 )}
               </div>
+
+              {/* Save as Preset */}
+              {modelId && (
+                <div className="space-y-2">
+                  {!showSavePreset ? (
+                    <button
+                      onClick={() => setShowSavePreset(true)}
+                      className="flex items-center gap-2 text-sm text-zinc-400 hover:text-zinc-200 transition-colors"
+                    >
+                      <Bookmark className="w-4 h-4" />
+                      <span>Save as preset</span>
+                    </button>
+                  ) : (
+                    <div className="space-y-2">
+                      <input
+                        type="text"
+                        value={presetName}
+                        onChange={(e) => setPresetName(e.target.value)}
+                        placeholder="Preset name"
+                        className="w-full px-3 py-2 bg-zinc-800 border border-zinc-700 rounded-lg text-sm text-zinc-300 placeholder-zinc-500 outline-none focus:border-zinc-600"
+                      />
+                      <div className="flex gap-2">
+                        <button
+                          onClick={handleSaveAsPreset}
+                          disabled={saveStatus === 'loading' || !presetName.trim()}
+                          className="flex items-center gap-1 px-3 py-2 bg-primary text-primary-foreground rounded-lg text-sm font-medium hover:bg-primary/90 disabled:opacity-50"
+                        >
+                          {saveStatus === 'loading' ? 'Saving...' : 'Save'}
+                        </button>
+                        <button
+                          onClick={() => {
+                            setShowSavePreset(false);
+                            setPresetName('');
+                            setSaveStatus('idle');
+                            setSaveError(null);
+                          }}
+                          className="px-3 py-2 text-sm text-zinc-400 hover:text-zinc-200"
+                        >
+                          Cancel
+                        </button>
+                      </div>
+                      {saveStatus === 'success' && (
+                        <p className="text-xs text-emerald-400">Preset saved!</p>
+                      )}
+                      {saveError && (
+                        <p className="text-xs text-red-400">{saveError}</p>
+                      )}
+                    </div>
+                  )}
+                </div>
+              )}
 
               {/* Info */}
               <div className="p-3 bg-zinc-800/50 rounded-lg">

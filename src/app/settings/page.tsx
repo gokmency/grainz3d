@@ -1,6 +1,8 @@
 import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
+import { getAllPresets } from '@/app/presets/actions'
 import { SettingsForm } from './SettingsForm'
+import { DashboardLayout } from '@/components/ui/dashboard-layout'
 
 export default async function SettingsPage() {
   const supabase = await createClient()
@@ -13,22 +15,35 @@ export default async function SettingsPage() {
     .eq('id', user.id)
     .single()
 
-  return (
-    <main className="min-h-screen flex items-center justify-center bg-zinc-950 px-4">
-      <div className="w-full max-w-md">
-        <div className="rounded-2xl border border-zinc-800 bg-zinc-900/50 p-8 shadow-xl">
-          <h1 className="text-2xl font-bold text-white mb-2">Profile settings</h1>
-          <p className="text-zinc-400 text-sm mb-6">
-            Update your profile information
-          </p>
+  const presets = await getAllPresets()
+  const displayName = profile?.full_name || user.email || 'User'
 
-          <SettingsForm
-            email={user.email ?? ''}
-            fullName={profile?.full_name ?? ''}
-            avatarUrl={profile?.avatar_url ?? ''}
-          />
+  return (
+    <DashboardLayout
+      displayName={displayName}
+      presetCount={presets.length}
+      activeNav="settings"
+    >
+      <div className="flex-1 p-6 lg:p-10 overflow-auto">
+        <div className="max-w-md mx-auto">
+          <div className="mb-8">
+            <h1 className="text-2xl font-bold tracking-tight text-foreground mb-1">
+              Profile settings
+            </h1>
+            <p className="text-muted-foreground text-sm">
+              Update your profile information
+            </p>
+          </div>
+
+          <div className="rounded-2xl border border-border bg-card p-6">
+            <SettingsForm
+              email={user.email ?? ''}
+              fullName={profile?.full_name ?? ''}
+              avatarUrl={profile?.avatar_url ?? ''}
+            />
+          </div>
         </div>
       </div>
-    </main>
+    </DashboardLayout>
   )
 }

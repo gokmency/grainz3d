@@ -10,6 +10,7 @@ Run migrations in order:
 4. Run each migration file in order:
    - `migrations/20250126000000_create_profiles.sql`
    - `migrations/20250126100000_create_presets.sql`
+   - `migrations/20250126200000_create_avatars_bucket.sql`
 
 Alternatively, if you use the Supabase CLI:
 
@@ -27,3 +28,8 @@ supabase db push
 
 - Creates a `public.presets` table with: `id`, `user_id`, `model_id`, `name`, `values` (JSONB), `is_favorite`, `created_at`, `updated_at`
 - Enables RLS so users can only CRUD their own presets
+
+## Migration 3: Avatars Storage
+
+- RLS policies for `storage.objects` (avatars bucket)
+- **Before running:** Create the bucket in Supabase Dashboard: Storage > New bucket > id: `avatars`, Public: true, File size limit: 1MB

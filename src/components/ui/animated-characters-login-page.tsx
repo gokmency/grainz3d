@@ -643,13 +643,13 @@ export function AnimatedCharactersLoginPage({
         </div>
 
         <div className="relative z-20 flex items-center gap-8 text-sm text-primary-foreground/60">
-          <Link href="#" className="hover:text-primary-foreground transition-colors">
+          <Link href="/privacy" className="hover:text-primary-foreground transition-colors">
             Privacy Policy
           </Link>
-          <Link href="#" className="hover:text-primary-foreground transition-colors">
+          <Link href="/terms" className="hover:text-primary-foreground transition-colors">
             Terms of Service
           </Link>
-          <Link href="#" className="hover:text-primary-foreground transition-colors">
+          <Link href="/contact" className="hover:text-primary-foreground transition-colors">
             Contact
           </Link>
         </div>
@@ -773,7 +773,8 @@ export function AnimatedCharactersLoginPage({
             </Button>
           </form>
 
-          <div className="text-center text-sm text-muted-foreground mt-8">
+          <div className="text-center text-sm text-muted-foreground mt-8 space-y-1">
+            <p>
             Don&apos;t have an account?{" "}
             <Link
               href={`/signup${redirectTo !== "/dashboard" ? `?redirectTo=${encodeURIComponent(redirectTo)}` : ""}`}
@@ -781,6 +782,10 @@ export function AnimatedCharactersLoginPage({
             >
               Sign Up
             </Link>
+            </p>
+            <p className="text-xs">
+              Signup requires email verification before first login.
+            </p>
           </div>
         </div>
       </div>
