@@ -9,7 +9,7 @@ import { Button } from '@/components/ui/button'
 function AuthCallbackContent() {
   const router = useRouter()
   const searchParams = useSearchParams()
-  const next = searchParams.get('next') || '/configurator'
+  const next = searchParams.get('next') || '/dashboard'
   const [isRecovery, setIsRecovery] = useState<boolean | null>(null)
   const [error, setError] = useState<string | null>(null)
 

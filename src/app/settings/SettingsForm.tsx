@@ -98,10 +98,10 @@ export function SettingsForm({ email, fullName, avatarUrl }: SettingsFormProps) 
 
       <p className="mt-6 text-center text-sm text-zinc-400">
         <Link
-          href="/configurator"
+          href="/dashboard"
           className="font-medium text-white hover:underline"
         >
-          Back to configurator
+          Back to dashboard
         </Link>
       </p>
     </form>

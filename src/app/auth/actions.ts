@@ -80,7 +80,7 @@ export async function signIn(formData: FormData) {
 
   const redirectTo = formData.get('redirectTo') as string | null
   revalidatePath('/', 'layout')
-  redirect(redirectTo || '/configurator')
+  redirect(redirectTo || '/dashboard')
 }
 
 export async function signOut() {
