@@ -18,6 +18,7 @@ import { OutputsPanel } from './OutputsPanel';
 import { PresetSelector, Preset } from './PresetSelector';
 import { ARViewButton } from './ARViewButton';
 import { ModelSelector } from './ModelSelector';
+import { SignOutButton } from './SignOutButton';
 import { debounce } from '@/hooks/useDebounce';
 
 interface ShapeDiverViewerProps {
@@ -359,11 +360,14 @@ export function ShapeDiverViewer({ className = '', initialModel }: ShapeDiverVie
         {/* Outputs Panel */}
         {isReady && <OutputsPanel session={session} />}
 
-        {/* Sidebar Footer - Share & AR */}
+        {/* Sidebar Footer - Share, AR & Sign Out */}
         {isReady && (
-          <div className="p-4 border-t border-zinc-800 flex gap-2">
-            <ShareURL session={session} parameters={parameters} />
-            <ARViewButton viewport={viewport} session={session} />
+          <div className="p-4 border-t border-zinc-800 flex flex-col gap-2">
+            <div className="flex gap-2">
+              <ShareURL session={session} parameters={parameters} />
+              <ARViewButton viewport={viewport} session={session} />
+            </div>
+            <SignOutButton />
           </div>
         )}
       </aside>

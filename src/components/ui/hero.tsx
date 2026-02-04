@@ -25,7 +25,7 @@ const COPY = {
       "A browser-based platform for visual configuration, editing, and preview of parametric models. No installation required.",
     primaryCta: "Start Demo",
     secondaryCta: "Watch Demo",
-    login: "Contact",
+    login: "Login",
   },
   tr: {
     nav: {
@@ -42,7 +42,7 @@ const COPY = {
       "Parametrik modellerin görsel yapılandırması, düzenlenmesi ve önizlemesi için tarayıcı tabanlı platform. Kurulum gerektirmez.",
     primaryCta: "Demo'yu Başlat",
     secondaryCta: "Demo İzle",
-    login: "İletişim",
+    login: "Giriş Yap",
   },
 };
 
@@ -59,7 +59,7 @@ const Hero = ({ language, onLanguageChange }: HeroProps) => {
         { label: t.nav.faq, href: "#faq" },
       ]}
       ctaButtonText={t.login}
-      ctaButtonHref="mailto:contact@example.com"
+      ctaButtonHref="/login"
       badgeLabel={t.badgeLabel}
       badgeText={t.badge}
       title={t.title}
