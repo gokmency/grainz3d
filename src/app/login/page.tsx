@@ -82,6 +82,15 @@ function LoginForm() {
             >
               Sign in
             </Button>
+
+            <p className="text-center">
+              <Link
+                href="/forgot-password"
+                className="text-sm text-zinc-500 hover:text-zinc-400 transition-colors"
+              >
+                Forgot password?
+              </Link>
+            </p>
           </form>
 
           <p className="mt-6 text-center text-sm text-zinc-400">

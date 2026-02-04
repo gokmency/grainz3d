@@ -11,10 +11,17 @@ import {
   Star,
   Loader2,
 } from 'lucide-react';
+import {
+  getPresets,
+  createPreset,
+  deletePreset,
+  togglePresetFavorite,
+} from '@/app/presets/actions';
 
 interface PresetSelectorProps {
   session: ISessionApi | null;
   parameters: IParameterApi<unknown>[];
+  modelId: string;
   onApplyPreset: (preset: Preset) => void;
 }
 
@@ -24,65 +31,73 @@ export interface Preset {
   description?: string;
   values: Record<string, string | number | boolean>;
   isDefault?: boolean;
+  isFavorite?: boolean;
   createdAt: number;
 }
 
-// Local storage key for presets
-const PRESETS_STORAGE_KEY = 'shapediver-presets';
-
-// Default presets (can be customized per model)
-const DEFAULT_PRESETS: Preset[] = [
-  {
-    id: 'default',
-    name: 'Default',
-    description: 'Original configuration',
-    values: {},
-    isDefault: true,
-    createdAt: 0,
-  },
-];
+const DEFAULT_PRESET: Preset = {
+  id: 'default',
+  name: 'Default',
+  description: 'Original configuration',
+  values: {},
+  isDefault: true,
+  isFavorite: false,
+  createdAt: 0,
+};
 
 export function PresetSelector({
   session,
   parameters,
+  modelId,
   onApplyPreset,
 }: PresetSelectorProps) {
-  const [presets, setPresets] = useState<Preset[]>(DEFAULT_PRESETS);
+  const [presets, setPresets] = useState<Preset[]>([DEFAULT_PRESET]);
   const [selectedPreset, setSelectedPreset] = useState<string | null>(null);
   const [isOpen, setIsOpen] = useState(false);
   const [isCreating, setIsCreating] = useState(false);
   const [newPresetName, setNewPresetName] = useState('');
   const [isApplying, setIsApplying] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-  // Load presets from localStorage on mount
+  // Load presets from Supabase when model changes
   useEffect(() => {
-    try {
-      const stored = localStorage.getItem(PRESETS_STORAGE_KEY);
-      if (stored) {
-        const parsedPresets = JSON.parse(stored) as Preset[];
-        setPresets([...DEFAULT_PRESETS, ...parsedPresets]);
-      }
-    } catch (err) {
-      console.error('Error loading presets:', err);
+    if (!modelId) {
+      setPresets([DEFAULT_PRESET]);
+      setIsLoading(false);
+      return;
     }
-  }, []);
 
-  // Save presets to localStorage
-  const savePresets = useCallback((presetsToSave: Preset[]) => {
-    try {
-      // Only save non-default presets
-      const customPresets = presetsToSave.filter((p) => !p.isDefault);
-      localStorage.setItem(PRESETS_STORAGE_KEY, JSON.stringify(customPresets));
-    } catch (err) {
-      console.error('Error saving presets:', err);
-    }
-  }, []);
+    let cancelled = false;
+    setIsLoading(true);
+    setError(null);
 
-  // Create new preset from current configuration
-  const handleCreatePreset = useCallback(() => {
+    getPresets(modelId)
+      .then((data) => {
+        if (!cancelled) {
+          setPresets([DEFAULT_PRESET, ...data]);
+        }
+      })
+      .catch((err) => {
+        if (!cancelled) {
+          console.error('Error loading presets:', err);
+          setError('Failed to load presets');
+          setPresets([DEFAULT_PRESET]);
+        }
+      })
+      .finally(() => {
+        if (!cancelled) setIsLoading(false);
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [modelId]);
+
+  // Create new preset
+  const handleCreatePreset = useCallback(async () => {
     if (!session || !newPresetName.trim()) return;
 
-    // Collect current parameter values
     const values: Record<string, string | number | boolean> = {};
     parameters.forEach((param) => {
       if (param.value !== undefined) {
@@ -90,21 +105,28 @@ export function PresetSelector({
       }
     });
 
+    const result = await createPreset(modelId, newPresetName.trim(), values);
+
+    if (result?.error) {
+      setError(result.error);
+      return;
+    }
+
     const newPreset: Preset = {
-      id: `preset-${Date.now()}`,
+      id: result.id!,
       name: newPresetName.trim(),
       values,
+      isDefault: false,
+      isFavorite: false,
       createdAt: Date.now(),
     };
 
-    const updatedPresets = [...presets, newPreset];
-    setPresets(updatedPresets);
-    savePresets(updatedPresets);
-    
+    setPresets((prev) => [...prev, newPreset]);
     setNewPresetName('');
     setIsCreating(false);
     setSelectedPreset(newPreset.id);
-  }, [session, parameters, newPresetName, presets, savePresets]);
+    setError(null);
+  }, [session, parameters, newPresetName, modelId]);
 
   // Apply preset
   const handleApplyPreset = useCallback(
@@ -116,7 +138,6 @@ export function PresetSelector({
       setIsOpen(false);
 
       try {
-        // For default preset, reset to default values
         if (preset.isDefault) {
           parameters.forEach((param) => {
             if (param.defval !== undefined) {
@@ -124,7 +145,6 @@ export function PresetSelector({
             }
           });
         } else {
-          // Apply preset values
           Object.entries(preset.values).forEach(([id, value]) => {
             const param = session.parameters[id];
             if (param) {
@@ -133,7 +153,6 @@ export function PresetSelector({
           });
         }
 
-        // Trigger customization
         await session.customize();
         onApplyPreset(preset);
       } catch (err) {
@@ -147,18 +166,48 @@ export function PresetSelector({
 
   // Delete preset
   const handleDeletePreset = useCallback(
-    (presetId: string, e: React.MouseEvent) => {
+    async (presetId: string, e: React.MouseEvent) => {
       e.stopPropagation();
-      
-      const updatedPresets = presets.filter((p) => p.id !== presetId);
-      setPresets(updatedPresets);
-      savePresets(updatedPresets);
-      
+
+      const result = await deletePreset(presetId);
+      if (result?.error) {
+        setError(result.error);
+        return;
+      }
+
+      setPresets((prev) => prev.filter((p) => p.id !== presetId));
       if (selectedPreset === presetId) {
         setSelectedPreset(null);
       }
+      setError(null);
     },
-    [presets, selectedPreset, savePresets]
+    [selectedPreset]
+  );
+
+  // Toggle favorite
+  const handleToggleFavorite = useCallback(
+    async (presetId: string, e: React.MouseEvent) => {
+      e.stopPropagation();
+
+      const preset = presets.find((p) => p.id === presetId);
+      if (!preset || preset.isDefault) return;
+
+      const newFavorite = !preset.isFavorite;
+      const result = await togglePresetFavorite(presetId, newFavorite);
+
+      if (result?.error) {
+        setError(result.error);
+        return;
+      }
+
+      setPresets((prev) =>
+        prev.map((p) =>
+          p.id === presetId ? { ...p, isFavorite: newFavorite } : p
+        )
+      );
+      setError(null);
+    },
+    [presets]
   );
 
   const selectedPresetData = presets.find((p) => p.id === selectedPreset);
@@ -173,7 +222,12 @@ export function PresetSelector({
       >
         <Bookmark className="w-4 h-4 text-zinc-400" />
         <span className="flex-1 text-left truncate">
-          {isApplying ? (
+          {isLoading ? (
+            <span className="flex items-center gap-2">
+              <Loader2 className="w-3 h-3 animate-spin" />
+              Loading...
+            </span>
+          ) : isApplying ? (
             <span className="flex items-center gap-2">
               <Loader2 className="w-3 h-3 animate-spin" />
               Applying...
@@ -191,6 +245,10 @@ export function PresetSelector({
         />
       </button>
 
+      {error && (
+        <p className="mt-1 text-xs text-red-400">{error}</p>
+      )}
+
       {/* Dropdown */}
       {isOpen && (
         <div className="absolute top-full left-0 right-0 mt-1 py-1 bg-zinc-900 border border-zinc-800 rounded-lg shadow-xl z-50 max-h-64 overflow-y-auto">
@@ -206,9 +264,19 @@ export function PresetSelector({
               }`}
             >
               {preset.isDefault ? (
-                <Star className="w-4 h-4 text-amber-500" />
+                <Star className="w-4 h-4 text-amber-500 flex-shrink-0" />
               ) : (
-                <Bookmark className="w-4 h-4 text-zinc-500" />
+                <button
+                  onClick={(e) => handleToggleFavorite(preset.id, e)}
+                  className="flex-shrink-0 p-0.5 text-zinc-500 hover:text-amber-500 transition-colors"
+                  title={preset.isFavorite ? 'Remove from favorites' : 'Add to favorites'}
+                >
+                  {preset.isFavorite ? (
+                    <Star className="w-4 h-4 text-amber-500 fill-amber-500" />
+                  ) : (
+                    <Star className="w-4 h-4" />
+                  )}
+                </button>
               )}
               <span className="flex-1 text-left truncate">{preset.name}</span>
               {selectedPreset === preset.id && (

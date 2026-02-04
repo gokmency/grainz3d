@@ -9,7 +9,7 @@ import {
   IParameterApi,
 } from '@shapediver/viewer';
 import { ModelConfig, isConfigValid, isModelConfigValid, MODELS, getDefaultModel } from '@/lib/config';
-import { Loader2, AlertCircle, Settings2 } from 'lucide-react';
+import { Loader2, AlertCircle, Settings2, Box } from 'lucide-react';
 import { ParameterPanel } from './ParameterPanel';
 import { ViewerToolbar } from './ViewerToolbar';
 import { EnvironmentSelector } from './EnvironmentSelector';
@@ -19,6 +19,7 @@ import { PresetSelector, Preset } from './PresetSelector';
 import { ARViewButton } from './ARViewButton';
 import { ModelSelector } from './ModelSelector';
 import { SignOutButton } from './SignOutButton';
+import Link from 'next/link';
 import { debounce } from '@/hooks/useDebounce';
 
 interface ShapeDiverViewerProps {
@@ -325,11 +326,12 @@ export function ShapeDiverViewer({ className = '', initialModel }: ShapeDiverVie
         )}
 
         {/* Preset Selector */}
-        {isReady && parameters.length > 0 && (
+        {isReady && parameters.length > 0 && currentModel && (
           <div className="px-4 py-3 border-b border-zinc-800">
             <PresetSelector
               session={session}
               parameters={parameters}
+              modelId={currentModel.id}
               onApplyPreset={handleApplyPreset}
             />
           </div>
@@ -360,12 +362,28 @@ export function ShapeDiverViewer({ className = '', initialModel }: ShapeDiverVie
         {/* Outputs Panel */}
         {isReady && <OutputsPanel session={session} />}
 
-        {/* Sidebar Footer - Share, AR & Sign Out */}
+        {/* Sidebar Footer - Share, AR, Settings & Sign Out */}
         {isReady && (
           <div className="p-4 border-t border-zinc-800 flex flex-col gap-2">
             <div className="flex gap-2">
               <ShareURL session={session} parameters={parameters} />
               <ARViewButton viewport={viewport} session={session} />
+            </div>
+            <div className="flex gap-2">
+              <Link
+                href="/dashboard"
+                className="flex items-center gap-2 px-3 py-2 text-sm text-zinc-400 hover:text-white hover:bg-zinc-800 rounded-md transition-colors"
+              >
+                <Box className="w-4 h-4" />
+                Dashboard
+              </Link>
+              <Link
+                href="/settings"
+                className="flex items-center gap-2 px-3 py-2 text-sm text-zinc-400 hover:text-white hover:bg-zinc-800 rounded-md transition-colors"
+              >
+                <Settings2 className="w-4 h-4" />
+                Settings
+              </Link>
             </div>
             <SignOutButton />
           </div>
