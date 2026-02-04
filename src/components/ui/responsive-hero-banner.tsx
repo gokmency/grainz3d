@@ -1,10 +1,8 @@
 "use client";
 
 import React, { useState } from "react";
-import { Menu, X, ArrowRight, Play, MessageSquare } from "lucide-react";
-import { motion } from "framer-motion";
+import { Menu, X, ArrowRight, Play } from "lucide-react";
 import Link from "next/link";
-import { FeedbackModal } from "@/components/ui/feedback-modal";
 
 interface NavLink {
   label: string;
@@ -59,11 +57,6 @@ const ResponsiveHeroBanner: React.FC<ResponsiveHeroBannerProps> = ({
   onLanguageChange,
 }) => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const [isFeedbackModalOpen, setIsFeedbackModalOpen] = useState(false);
-
-  const feedbackText = language === "en" 
-    ? "Still in development - Your feedback helps us improve!"
-    : "Geliştirme aşamasında - Görüşleriniz bize yardımcı olur!";
 
   return (
     <section className="w-full isolate min-h-screen overflow-hidden relative">
@@ -75,30 +68,7 @@ const ResponsiveHeroBanner: React.FC<ResponsiveHeroBannerProps> = ({
       <div className="pointer-events-none absolute inset-0 ring-1 ring-black/30" />
       <div className="absolute inset-0 bg-gradient-to-b from-black/60 via-black/40 to-black/80" />
 
-      {/* Feedback Banner */}
-      <div className="z-20 relative pt-4">
-        <div className="container mx-auto px-4">
-          <motion.div
-            initial={{ opacity: 0, y: -20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5 }}
-            className="mx-auto max-w-4xl"
-          >
-            <button
-              onClick={() => setIsFeedbackModalOpen(true)}
-              className="group flex items-center justify-center gap-3 rounded-2xl border-[0.75px] border-white/20 bg-white/10 px-6 py-4 backdrop-blur-sm transition hover:bg-white/15 hover:border-white/30 ring-1 ring-white/10 w-full"
-            >
-              <MessageSquare className="h-5 w-5 text-white/90 group-hover:text-white transition" />
-              <span className="text-base font-medium text-white/90 group-hover:text-white transition">
-                {feedbackText}
-              </span>
-              <ArrowRight className="h-4 w-4 text-white/70 group-hover:text-white transition" />
-            </button>
-          </motion.div>
-        </div>
-      </div>
-
-      <header className="z-10 xl:top-4 relative">
+      <header className="z-10 xl:top-4 relative pt-4">
         <div className="mx-6">
           <div className="flex items-center justify-between pt-4">
             {logoUrl ? (
@@ -127,37 +97,21 @@ const ResponsiveHeroBanner: React.FC<ResponsiveHeroBannerProps> = ({
                   </a>
                 ))}
                 {onLanguageChange && (
-                  <div className="flex items-center rounded-full border border-white/20 p-1 text-xs mx-1">
-                    <button
-                      type="button"
-                      onClick={() => onLanguageChange("en")}
-                      className={`rounded-full px-3 py-1.5 font-medium transition ${
-                        language === "en"
-                          ? "bg-white text-black"
-                          : "text-white/80 hover:text-white"
-                      }`}
-                    >
-                      EN
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => onLanguageChange("tr")}
-                      className={`rounded-full px-3 py-1.5 font-medium transition ${
-                        language === "tr"
-                          ? "bg-white text-black"
-                          : "text-white/80 hover:text-white"
-                      }`}
-                    >
-                      TR
-                    </button>
-                  </div>
+                  <button
+                    type="button"
+                    onClick={() => onLanguageChange(language === "en" ? "tr" : "en")}
+                    className="mx-1 min-w-[2rem] rounded-full px-2.5 py-1.5 text-xs font-medium text-white/80 hover:text-white hover:bg-white/10 transition-colors"
+                    aria-label={language === "en" ? "Switch to Turkish" : "Switch to English"}
+                  >
+                    {language === "en" ? "EN" : "TR"}
+                  </button>
                 )}
                 <a
                   href={ctaButtonHref}
-                  className="ml-1 inline-flex items-center gap-2 rounded-full bg-white px-3.5 py-2 text-sm font-medium text-neutral-900 hover:bg-white/90 font-sans transition-colors"
+                  className="group ml-1 inline-flex items-center gap-2 rounded-full bg-white px-3.5 py-2 text-sm font-medium text-neutral-900 hover:bg-white/90 font-sans transition-all duration-300 hover:scale-105 active:scale-95"
                 >
                   {ctaButtonText}
-                  <ArrowRight className="h-4 w-4" />
+                  <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
                 </a>
               </div>
             </nav>
@@ -204,41 +158,19 @@ const ResponsiveHeroBanner: React.FC<ResponsiveHeroBannerProps> = ({
                   </a>
                 ))}
                 {onLanguageChange && (
-                  <div className="flex items-center gap-2 pt-4">
-                    <button
-                      type="button"
-                      onClick={() => {
-                        onLanguageChange("en");
-                        setMobileMenuOpen(false);
-                      }}
-                      className={`rounded-full px-4 py-2 text-sm font-medium transition ${
-                        language === "en"
-                          ? "bg-white text-black"
-                          : "border border-white/20 text-white"
-                      }`}
-                    >
-                      English
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => {
-                        onLanguageChange("tr");
-                        setMobileMenuOpen(false);
-                      }}
-                      className={`rounded-full px-4 py-2 text-sm font-medium transition ${
-                        language === "tr"
-                          ? "bg-white text-black"
-                          : "border border-white/20 text-white"
-                      }`}
-                    >
-                      Türkçe
-                    </button>
-                  </div>
+                  <button
+                    type="button"
+                    onClick={() => onLanguageChange(language === "en" ? "tr" : "en")}
+                    className="pt-4 text-left text-sm font-medium text-white/80 hover:text-white transition-colors"
+                    aria-label={language === "en" ? "Switch to Turkish" : "Switch to English"}
+                  >
+                    {language === "en" ? "EN" : "TR"}
+                  </button>
                 )}
                 <Link
                   href={ctaButtonHref}
                   onClick={() => setMobileMenuOpen(false)}
-                  className="mt-4 inline-flex items-center justify-center rounded-full bg-white px-6 py-3 text-sm font-medium text-black hover:bg-white/90"
+                  className="mt-4 inline-flex items-center justify-center rounded-full bg-white px-6 py-3 text-sm font-medium text-black hover:bg-white/90 transition-all duration-300 hover:scale-105 active:scale-95"
                 >
                   {ctaButtonText}
                 </Link>
@@ -284,16 +216,16 @@ const ResponsiveHeroBanner: React.FC<ResponsiveHeroBannerProps> = ({
               {primaryButtonText && (
                 <Link
                   href={primaryButtonHref}
-                  className="inline-flex items-center gap-2 hover:bg-white/15 text-sm font-medium text-white bg-white/10 ring-white/15 ring-1 rounded-full py-3 px-5 font-sans transition-colors"
+                  className="group inline-flex items-center gap-2 hover:bg-white/15 text-sm font-medium text-white bg-white/10 ring-white/15 ring-1 rounded-full py-3 px-5 font-sans transition-all duration-300 hover:scale-105 active:scale-95"
                 >
                   {primaryButtonText}
-                  <ArrowRight className="h-4 w-4" />
+                  <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
                 </Link>
               )}
               {secondaryButtonText && (
                 <a
                   href={secondaryButtonHref}
-                  className="inline-flex items-center gap-2 rounded-full bg-transparent px-5 py-3 text-sm font-medium text-white/90 hover:text-white font-sans transition-colors"
+                  className="inline-flex items-center gap-2 rounded-full bg-transparent px-5 py-3 text-sm font-medium text-white/90 hover:text-white font-sans transition-all duration-300 hover:scale-105 active:scale-95"
                 >
                   {secondaryButtonText}
                   <Play className="w-4 h-4" />
@@ -323,13 +255,6 @@ const ResponsiveHeroBanner: React.FC<ResponsiveHeroBannerProps> = ({
           )}
         </div>
       </div>
-
-      {/* Feedback Modal */}
-      <FeedbackModal
-        isOpen={isFeedbackModalOpen}
-        onClose={() => setIsFeedbackModalOpen(false)}
-        language={language}
-      />
     </section>
   );
 };

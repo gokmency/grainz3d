@@ -84,7 +84,7 @@ export function Pricing({
   };
 
   return (
-    <section id="pricing" className="relative w-full isolate min-h-screen overflow-hidden">
+    <section id="pricing" className="relative z-10 w-full isolate min-h-screen overflow-hidden bg-gradient-to-b from-zinc-950/15 via-black/50 to-zinc-950/15">
       <div className="container py-24">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
@@ -220,9 +220,9 @@ export function Pricing({
                       variant: "outline",
                     }),
                     "group relative w-full gap-2 overflow-hidden text-lg font-semibold tracking-tighter",
-                    "transform-gpu ring-offset-current transition-all duration-300 ease-out hover:ring-2 hover:ring-white/30 hover:ring-offset-1",
+                    "transform-gpu ring-offset-current transition-all duration-300 ease-out hover:ring-2 hover:ring-white/30 hover:ring-offset-1 hover:scale-[1.02] active:scale-[0.98]",
                     plan.isPopular
-                      ? "bg-white text-black border-white hover:bg-white/90"
+                      ? "bg-white text-black border-white hover:bg-white/90 hover:shadow-[0_0_20px_rgba(255,255,255,0.15)]"
                       : "bg-white/10 text-white border-white/20 hover:bg-white/20"
                   )}
                 >

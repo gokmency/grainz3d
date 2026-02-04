@@ -1,6 +1,7 @@
 import Link from 'next/link'
-import { Sparkles, Home, Settings2, Box, Bookmark } from 'lucide-react'
+import { Sparkles, Settings2, Box, Bookmark } from 'lucide-react'
 import { MODELS } from '@/lib/config'
+import { FeedbackButton } from '@/components/ui/feedback-button'
 
 interface DashboardLayoutProps {
   children: React.ReactNode
@@ -71,6 +72,7 @@ export function DashboardLayout({
             <Bookmark className="w-4 h-4" />
             <span>{presetCount} preset{presetCount !== 1 ? 's' : ''} saved</span>
           </div>
+          <FeedbackButton className="text-primary-foreground/60 hover:text-primary-foreground" />
         </div>
 
         <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.05)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.05)_1px,transparent_1px)] bg-[size:20px_20px]" />
@@ -90,10 +92,12 @@ export function DashboardLayout({
             </div>
             <span>Grainz3D</span>
           </Link>
-          <Link
-            href={activeNav === 'settings' ? '/dashboard' : '/settings'}
-            className="flex items-center gap-2 px-3 py-2 rounded-lg border border-border text-muted-foreground hover:text-foreground hover:border-primary/50 transition-colors text-sm"
-          >
+          <div className="flex items-center gap-2">
+            <FeedbackButton className="text-muted-foreground hover:text-foreground" />
+            <Link
+              href={activeNav === 'settings' ? '/dashboard' : '/settings'}
+              className="flex items-center gap-2 px-3 py-2 rounded-lg border border-border text-muted-foreground hover:text-foreground hover:border-primary/50 transition-colors text-sm"
+            >
             {activeNav === 'settings' ? (
               <>
                 <Box className="w-4 h-4" />
@@ -105,7 +109,8 @@ export function DashboardLayout({
                 Settings
               </>
             )}
-          </Link>
+            </Link>
+          </div>
         </header>
         {children}
       </main>

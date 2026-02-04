@@ -18,6 +18,7 @@ import { motion } from "framer-motion";
 import { Hero } from "@/components/ui/hero";
 import { Pricing } from "@/components/ui/pricing";
 import { GlowingEffect } from "@/components/ui/glowing-effect";
+import { Particles } from "@/components/ui/particles";
 
 export type Language = "en" | "tr";
 
@@ -133,7 +134,7 @@ const COPY = {
           ],
           description: "For large organizations with specific needs",
           buttonText: "Contact Sales",
-          href: "mailto:contact@example.com",
+          href: "mailto:studiograinz@gmail.com",
           isPopular: false,
         },
       ],
@@ -284,7 +285,7 @@ const COPY = {
           ],
           description: "Özel ihtiyaçları olan büyük kuruluşlar için",
           buttonText: "Satışla İletişime Geç",
-          href: "mailto:contact@example.com",
+          href: "mailto:studiograinz@gmail.com",
           isPopular: false,
         },
       ],
@@ -393,11 +394,22 @@ export default function Home() {
 
   return (
     <main className="min-h-screen bg-black text-white">
-      {/* Hero Section */}
+      {/* Hero Section - unchanged, no particles */}
       <Hero language={language} onLanguageChange={setLanguage} />
 
-      {/* Key Benefits Section */}
-      <section id="features" className="relative w-full isolate overflow-hidden">
+      {/* Content below hero with particle background */}
+      <div className="relative min-h-screen">
+        <Particles
+          className="absolute inset-0 z-0"
+          quantity={160}
+          ease={70}
+          staticity={50}
+          color="#ffffff"
+          size={0.8}
+        />
+
+        {/* Key Benefits Section */}
+        <section id="features" className="relative z-10 w-full isolate overflow-hidden bg-gradient-to-b from-black/70 via-zinc-950/30 to-black/70">
         <div className="container mx-auto px-4 py-24">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -471,8 +483,8 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Use Cases Section */}
-      <section id="use-cases" className="relative w-full isolate overflow-hidden">
+        {/* Use Cases Section */}
+        <section id="use-cases" className="relative z-10 w-full isolate overflow-hidden bg-zinc-950/5">
         <div className="container mx-auto px-4 py-24">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -518,16 +530,16 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Pricing Section */}
-      <Pricing
+        {/* Pricing Section */}
+        <Pricing
         plans={t.pricing.plans}
         title={t.pricing.title}
         description={t.pricing.description}
         language={language}
       />
 
-      {/* FAQ Section */}
-      <section id="faq" className="relative w-full isolate overflow-hidden">
+        {/* FAQ Section */}
+        <section id="faq" className="relative z-10 w-full isolate overflow-hidden bg-gradient-to-b from-black/70 via-zinc-950/20 to-black/70">
         <div className="container mx-auto px-4 py-24">
           <div className="mx-auto max-w-3xl">
             <motion.div
@@ -562,10 +574,10 @@ export default function Home() {
             </div>
           </div>
         </div>
-      </section>
+        </section>
 
-      {/* Final CTA Section */}
-      <section className="relative w-full isolate overflow-hidden">
+        {/* Final CTA Section */}
+        <section className="relative z-10 w-full isolate overflow-hidden bg-zinc-950/10">
         <div className="container mx-auto px-4 py-24">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -583,47 +595,48 @@ export default function Home() {
             <div className="mt-8 flex flex-wrap justify-center gap-4">
               <Link
                 href="/configurator"
-                className="h-12 flex items-center gap-2 rounded-full bg-white px-8 text-base font-medium text-black hover:bg-white/90 transition"
+                className="group h-12 flex items-center gap-2 rounded-full bg-white px-8 text-base font-medium text-black hover:bg-white/90 transition-all duration-300 hover:scale-105 hover:shadow-[0_0_30px_rgba(255,255,255,0.2)] active:scale-95"
               >
                 {t.finalCta.primaryCta}
-                <ArrowRight className="h-4 w-4" />
+                <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
               </Link>
-              <a
-                href="mailto:contact@example.com"
-                className="h-12 flex items-center rounded-full border border-white/20 bg-white/5 px-8 text-base font-medium text-white hover:bg-white/10 transition backdrop-blur-sm"
+              <Link
+                href="/contact"
+                className="h-12 flex items-center rounded-full border border-white/20 bg-white/5 px-8 text-base font-medium text-white hover:bg-white/10 hover:border-white/30 transition-all duration-300 hover:scale-105 active:scale-95 backdrop-blur-sm"
               >
                 {t.finalCta.secondaryCta}
-              </a>
+              </Link>
             </div>
           </motion.div>
         </div>
-      </section>
+        </section>
 
-      {/* Footer */}
-      <footer className="relative border-t border-white/10 bg-black/50 backdrop-blur-sm">
+        {/* Footer */}
+        <footer className="relative z-10 border-t border-white/10 bg-black/60 backdrop-blur-sm">
         <div className="relative z-10 container mx-auto px-4 py-10">
           <div className="flex flex-col items-center justify-between gap-6 md:flex-row">
             <div className="flex items-center text-white/70">
               <span className="text-sm font-semibold">{t.footer.product}</span>
             </div>
             <nav className="flex flex-wrap items-center justify-center gap-6 text-sm text-white/60">
-              <a
-                href="mailto:contact@example.com"
+              <Link
+                href="/contact"
                 className="transition hover:text-white"
               >
                 {t.footer.links.contact}
-              </a>
-              <a href="#" className="transition hover:text-white">
+              </Link>
+              <Link href="/privacy" className="transition hover:text-white">
                 {t.footer.links.privacy}
-              </a>
-              <a href="#" className="transition hover:text-white">
+              </Link>
+              <Link href="/terms" className="transition hover:text-white">
                 {t.footer.links.terms}
-              </a>
+              </Link>
             </nav>
             <p className="text-xs text-white/50">{t.footer.copyright}</p>
           </div>
         </div>
-      </footer>
+        </footer>
+      </div>
     </main>
   );
 }
