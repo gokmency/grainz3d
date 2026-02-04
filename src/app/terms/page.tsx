@@ -1,10 +1,21 @@
 import Link from 'next/link'
 import { ArrowLeft } from 'lucide-react'
+import { Particles } from '@/components/ui/particles'
 
 export default function TermsPage() {
   return (
-    <main className="min-h-screen bg-background text-foreground">
-      <div className="container max-w-3xl mx-auto px-4 py-12">
+    <main className="relative min-h-screen bg-background text-foreground">
+      <div className="absolute inset-0 z-0 min-h-full w-full">
+        <Particles
+          className="absolute inset-0 h-full w-full min-h-screen"
+          quantity={35}
+          ease={80}
+          staticity={30}
+          color="#ffffff"
+          size={0.5}
+        />
+      </div>
+      <div className="relative z-10 container max-w-3xl mx-auto px-4 py-12">
         <Link
           href="/"
           className="inline-flex items-center gap-2 text-muted-foreground hover:text-foreground mb-8 transition-colors"

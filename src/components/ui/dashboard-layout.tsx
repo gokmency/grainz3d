@@ -1,7 +1,10 @@
+'use client'
+
 import Link from 'next/link'
 import { Sparkles, Settings2, Box, Bookmark } from 'lucide-react'
 import { MODELS } from '@/lib/config'
 import { FeedbackButton } from '@/components/ui/feedback-button'
+import { Particles } from '@/components/ui/particles'
 
 interface DashboardLayoutProps {
   children: React.ReactNode
@@ -81,8 +84,18 @@ export function DashboardLayout({
       </aside>
 
       {/* Main Content */}
-      <main className="flex flex-col min-h-screen bg-background">
-        <header className="lg:hidden flex items-center justify-between px-4 py-4 border-b border-border">
+      <main className="relative flex flex-col min-h-screen bg-background">
+        <div className="absolute inset-0 z-0 min-h-full w-full">
+          <Particles
+            className="absolute inset-0 h-full w-full min-h-screen"
+            quantity={35}
+            ease={80}
+            staticity={30}
+            color="#ffffff"
+            size={0.5}
+          />
+        </div>
+        <header className="relative z-10 lg:hidden flex items-center justify-between px-4 py-4 border-b border-border">
           <Link
             href="/"
             className="flex items-center gap-2 text-lg font-semibold text-foreground"
@@ -112,7 +125,7 @@ export function DashboardLayout({
             </Link>
           </div>
         </header>
-        {children}
+        <div className="relative z-10 flex-1 flex flex-col min-h-0">{children}</div>
       </main>
     </div>
   )

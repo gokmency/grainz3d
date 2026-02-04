@@ -24,63 +24,71 @@ export type Language = "en" | "tr";
 
 const COPY = {
   en: {
+    editorPreview: {
+      lead: "See your configurator in action",
+      title: "Interactive 3D Configuration at Your Fingertips",
+      description:
+        "Our web-based editor puts full parametric control in the browser. Adjust sliders, tweak dimensions, and watch your 3D model update instantly—no plugins, no downloads. Share a link and let your clients configure products in real time.",
+    },
     benefits: {
       title: "Key Capabilities",
-      subtitle: "Everything you need to build powerful configuration experiences.",
+      subtitle:
+        "Built on ShapeDiver and modern web standards, GRAINZ 3D gives you everything needed to deliver professional configuration experiences—from prototype to production.",
       items: [
         {
           icon: "zap",
-          title: "Real-Time Configuration",
+          title: "Real-Time Parametric Updates",
           description:
-            "Instant visual feedback as parameters change. No waiting, no reloads.",
+            "Every parameter change triggers instant visual feedback. Your 3D model recomputes on the fly, so users see results immediately—no page reloads or waiting.",
         },
         {
           icon: "globe",
-          title: "Browser-Based, No Installation",
+          title: "Browser-Based, Zero Installation",
           description:
-            "Works on any modern browser. Share a link and users can configure immediately.",
+            "Runs entirely in the browser. Share a single link and anyone can start configuring—on desktop, tablet, or mobile. No software to install or maintain.",
         },
         {
           icon: "layers",
-          title: "Multiple Output Formats",
+          title: "Multiple Export Formats",
           description:
-            "Export configurations in various formats ready for downstream workflows.",
+            "Export configurations in formats ready for manufacturing, visualization, or e-commerce. Seamlessly connect to your existing workflows and tools.",
         },
         {
           icon: "code",
-          title: "Easy Integration",
+          title: "Easy Integration & Embedding",
           description:
-            "Embed in your website or connect via API. Designed for seamless integration.",
+            "Embed the configurator in your site, connect via API, or use our hosted solution. Designed for seamless integration with your brand and tech stack.",
         },
       ],
     },
     useCases: {
       title: "Built for Your Industry",
-      subtitle: "Flexible enough to serve diverse configuration needs.",
+      subtitle:
+        "Whether you design buildings, products, or customer experiences—our platform adapts to your workflow and scales with your needs.",
       items: [
         {
           icon: "building",
           title: "Architecture & AEC",
           description:
-            "Configurable building components, facades, and structural elements for architects and engineers.",
+            "Configurable facades, structural elements, and building components. Let clients explore design options and generate specifications in real time.",
         },
         {
           icon: "factory",
           title: "Manufacturing & Product Design",
           description:
-            "Custom product configurators for furniture, machinery, and industrial components.",
+            "Custom configurators for furniture, machinery, and industrial products. From mass customization to made-to-order—one platform for all.",
         },
         {
           icon: "box",
           title: "Industrial Visualization",
           description:
-            "Interactive 3D models for sales tools, catalogs, and customer-facing applications.",
+            "Interactive 3D models for sales tools, catalogs, and customer-facing apps. Turn complex products into intuitive, configurable experiences.",
         },
       ],
     },
     pricing: {
       title: "Simple, Transparent Pricing",
-      description: "Choose the plan that works for you\nAll plans include access to our platform, configuration tools, and dedicated support.",
+      description: "Choose the plan that fits your needs.\nAll plans include platform access, configuration tools, and dedicated support—scale as you grow.",
       plans: [
         {
           name: "STARTER",
@@ -144,22 +152,22 @@ const COPY = {
       items: [
         {
           q: "Is this platform browser-based?",
-          a: "Yes. The entire platform runs in modern web browsers. No downloads, no plugins, no installation required. Users simply open a link and start configuring.",
+          a: "Yes. GRAINZ 3D runs entirely in modern web browsers—Chrome, Firefox, Safari, Edge. No downloads, no plugins, no installation. Users open a link and start configuring parametric 3D models immediately.",
         },
         {
           q: "Can it integrate with existing systems?",
-          a: "Absolutely. We provide APIs and embed options so you can integrate the configurator into your existing website, CRM, or e-commerce platform.",
+          a: "Absolutely. We offer APIs, embed codes, and webhooks so you can integrate the configurator into your website, CRM, e-commerce platform, or internal tools. Export configurations in formats ready for your downstream workflows.",
         },
         {
           q: "Who is this platform designed for?",
-          a: "Teams and businesses that need to offer configurable products or models to their customers—manufacturers, architects, product designers, and more.",
+          a: "Designers, manufacturers, architects, and businesses that need to offer configurable 3D products or models to their customers. From small studios to enterprise teams—our platform scales with you.",
         },
       ],
     },
     finalCta: {
       title: "Ready to Build Your Configurator?",
       subtitle:
-        "Start with a demo or talk to our team about your specific requirements.",
+        "Try the interactive demo or reach out to discuss your project. We'll help you bring parametric configuration to your products and workflows.",
       primaryCta: "Start Demo",
       secondaryCta: "Contact",
     },
@@ -174,64 +182,71 @@ const COPY = {
     },
   },
   tr: {
+    editorPreview: {
+      lead: "Yapılandırıcınızı canlı görün",
+      title: "Parmaklarınızın Ucunda İnteraktif 3D Yapılandırma",
+      description:
+        "Web tabanlı editörümüz, tam parametrik kontrolü tarayıcıya taşır. Kaydırıcıları ayarlayın, boyutları değiştirin, 3D modelinizin anında güncellenmesini izleyin—eklenti yok, indirme yok. Bir link paylaşın, müşterileriniz ürünleri gerçek zamanlı yapılandırsın.",
+    },
     benefits: {
       title: "Temel Yetenekler",
       subtitle:
-        "Güçlü konfigürasyon deneyimleri oluşturmak için ihtiyacınız olan her şey.",
+        "ShapeDiver ve modern web standartları üzerine kurulu GRAINZ 3D, prototipten üretime profesyonel yapılandırma deneyimleri sunmak için ihtiyacınız olan her şeyi sağlar.",
       items: [
         {
           icon: "zap",
-          title: "Gerçek Zamanlı Yapılandırma",
+          title: "Gerçek Zamanlı Parametrik Güncellemeler",
           description:
-            "Parametreler değiştikçe anında görsel geri bildirim. Bekleme yok, yenileme yok.",
+            "Her parametre değişikliği anında görsel geri bildirim tetikler. 3D modeliniz uçuşta yeniden hesaplanır—sayfa yenilemesi veya bekleme yok.",
         },
         {
           icon: "globe",
-          title: "Tarayıcı Tabanlı, Kurulum Yok",
+          title: "Tarayıcı Tabanlı, Sıfır Kurulum",
           description:
-            "Tüm modern tarayıcılarda çalışır. Link paylaşın, kullanıcılar hemen yapılandırmaya başlasın.",
+            "Tamamen tarayıcıda çalışır. Tek bir link paylaşın, masaüstü, tablet veya mobilde herkes yapılandırmaya başlasın. Kurulacak veya bakımı yapılacak yazılım yok.",
         },
         {
           icon: "layers",
-          title: "Çoklu Çıktı Formatları",
+          title: "Çoklu Dışa Aktarma Formatları",
           description:
-            "Yapılandırmaları sonraki iş akışlarına uygun çeşitli formatlarda dışa aktarın.",
+            "Yapılandırmaları üretim, görselleştirme veya e-ticaret için hazır formatlarda dışa aktarın. Mevcut iş akışlarınız ve araçlarınızla sorunsuz bağlantı kurun.",
         },
         {
           icon: "code",
-          title: "Kolay Entegrasyon",
+          title: "Kolay Entegrasyon ve Gömme",
           description:
-            "Web sitenize gömün veya API ile bağlanın. Sorunsuz entegrasyon için tasarlandı.",
+            "Yapılandırıcıyı sitenize gömün, API ile bağlayın veya barındırılan çözümümüzü kullanın. Markanız ve teknoloji yığınınızla sorunsuz entegrasyon için tasarlandı.",
         },
       ],
     },
     useCases: {
       title: "Sektörünüz İçin Tasarlandı",
-      subtitle: "Farklı yapılandırma ihtiyaçlarına hizmet edecek kadar esnek.",
+      subtitle:
+        "İster bina, ister ürün, ister müşteri deneyimi tasarlayın—platformumuz iş akışınıza uyum sağlar ve ihtiyaçlarınızla birlikte ölçeklenir.",
       items: [
         {
           icon: "building",
           title: "Mimari ve İnşaat",
           description:
-            "Mimarlar ve mühendisler için yapılandırılabilir bina bileşenleri, cepheler ve yapısal elemanlar.",
+            "Yapılandırılabilir cepheler, yapısal elemanlar ve bina bileşenleri. Müşterilerin tasarım seçeneklerini keşfetmesine ve spesifikasyonları gerçek zamanlı oluşturmasına olanak tanıyın.",
         },
         {
           icon: "factory",
           title: "Üretim ve Ürün Tasarımı",
           description:
-            "Mobilya, makine ve endüstriyel bileşenler için özel ürün yapılandırıcıları.",
+            "Mobilya, makine ve endüstriyel ürünler için özel yapılandırıcılar. Seri özelleştirmeden siparişe özel üretime—hepsi için tek platform.",
         },
         {
           icon: "box",
           title: "Endüstriyel Görselleştirme",
           description:
-            "Satış araçları, kataloglar ve müşteriye yönelik uygulamalar için interaktif 3D modeller.",
+            "Satış araçları, kataloglar ve müşteriye yönelik uygulamalar için interaktif 3D modeller. Karmaşık ürünleri sezgisel, yapılandırılabilir deneyimlere dönüştürün.",
         },
       ],
     },
     pricing: {
       title: "Basit, Şeffaf Fiyatlandırma",
-      description: "Size uygun planı seçin\nTüm planlar platform erişimi, konfigürasyon araçları ve özel destek içerir.",
+      description: "İhtiyaçlarınıza uygun planı seçin.\nTüm planlar platform erişimi, yapılandırma araçları ve özel destek içerir—büyüdükçe ölçeklenin.",
       plans: [
         {
           name: "BAŞLANGIÇ",
@@ -295,22 +310,22 @@ const COPY = {
       items: [
         {
           q: "Bu platform tarayıcı tabanlı mı?",
-          a: "Evet. Tüm platform modern web tarayıcılarında çalışır. İndirme yok, eklenti yok, kurulum gerekmiyor. Kullanıcılar sadece bir link açar ve yapılandırmaya başlar.",
+          a: "Evet. GRAINZ 3D tamamen modern web tarayıcılarında—Chrome, Firefox, Safari, Edge—çalışır. İndirme yok, eklenti yok, kurulum yok. Kullanıcılar bir link açar ve parametrik 3D modelleri hemen yapılandırmaya başlar.",
         },
         {
           q: "Mevcut sistemlerle entegre edilebilir mi?",
-          a: "Kesinlikle. Yapılandırıcıyı mevcut web sitenize, CRM veya e-ticaret platformunuza entegre edebilmeniz için API ve gömme seçenekleri sunuyoruz.",
+          a: "Kesinlikle. API'ler, gömme kodları ve webhook'lar sunuyoruz; yapılandırıcıyı web sitenize, CRM'inize, e-ticaret platformunuza veya dahili araçlarınıza entegre edebilirsiniz. Yapılandırmaları sonraki iş akışlarınıza hazır formatlarda dışa aktarın.",
         },
         {
           q: "Bu platform kimin için tasarlandı?",
-          a: "Müşterilerine yapılandırılabilir ürünler veya modeller sunması gereken ekipler ve işletmeler—üreticiler, mimarlar, ürün tasarımcıları ve daha fazlası.",
+          a: "Müşterilerine yapılandırılabilir 3D ürünler veya modeller sunması gereken tasarımcılar, üreticiler, mimarlar ve işletmeler. Küçük stüdyolardan kurumsal ekiplere—platformumuz sizinle birlikte ölçeklenir.",
         },
       ],
     },
     finalCta: {
       title: "Yapılandırıcınızı Oluşturmaya Hazır mısınız?",
       subtitle:
-        "Bir demo ile başlayın veya özel gereksinimleriniz hakkında ekibimizle konuşun.",
+        "İnteraktif demoyu deneyin veya projenizi tartışmak için bizimle iletişime geçin. Parametrik yapılandırmayı ürünlerinize ve iş akışlarınıza taşımanıza yardımcı olacağız.",
       primaryCta: "Demo'yu Başlat",
       secondaryCta: "İletişime Geç",
     },
@@ -408,15 +423,53 @@ export default function Home() {
           size={0.8}
         />
 
-        {/* Key Benefits Section */}
+        {/* Features Section: Editor Preview first, then Key Capabilities */}
         <section id="features" className="relative z-10 w-full isolate overflow-hidden bg-gradient-to-b from-black/70 via-zinc-950/30 to-black/70">
         <div className="container mx-auto px-4 py-24">
+          {/* Editor Preview - Top */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             transition={{ duration: 0.6 }}
-            className="mx-auto max-w-2xl text-center"
+            className="relative mx-auto max-w-6xl"
+          >
+            <div className="mx-auto max-w-2xl text-center mb-12">
+              <p className="text-sm font-medium text-primary/90 mb-2">{t.editorPreview.lead}</p>
+              <h2 className="text-3xl font-bold text-white md:text-4xl lg:text-5xl">
+                {t.editorPreview.title}
+              </h2>
+              <p className="mt-4 text-white/80 text-lg leading-relaxed">
+                {t.editorPreview.description}
+              </p>
+            </div>
+            <div className="relative rounded-3xl border-[0.75px] border-white/10 bg-white/5 p-4 backdrop-blur-sm ring-1 ring-white/10 overflow-hidden">
+              <GlowingEffect
+                spread={40}
+                glow={true}
+                disabled={false}
+                proximity={64}
+                inactiveZone={0.01}
+                borderWidth={2}
+              />
+              <div className="relative rounded-2xl overflow-hidden shadow-2xl">
+                <img
+                  src="/mockupforeditorpage.png"
+                  alt="3D Configurator Editor Preview"
+                  className="w-full h-auto object-cover"
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent pointer-events-none" />
+              </div>
+            </div>
+          </motion.div>
+
+          {/* Key Capabilities - Below */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.6, delay: 0.2 }}
+            className="mx-auto max-w-2xl text-center mt-24"
           >
             <h2 className="text-3xl font-bold text-white md:text-4xl lg:text-5xl">
               {t.benefits.title}
@@ -452,34 +505,6 @@ export default function Home() {
               </motion.div>
             ))}
           </div>
-
-          {/* Editor Preview Section */}
-          <motion.div
-            initial={{ opacity: 0, y: 40 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.8, delay: 0.3 }}
-            className="relative mx-auto max-w-6xl mt-24"
-          >
-            <div className="relative rounded-3xl border-[0.75px] border-white/10 bg-white/5 p-4 backdrop-blur-sm ring-1 ring-white/10 overflow-hidden">
-              <GlowingEffect
-                spread={40}
-                glow={true}
-                disabled={false}
-                proximity={64}
-                inactiveZone={0.01}
-                borderWidth={2}
-              />
-              <div className="relative rounded-2xl overflow-hidden shadow-2xl">
-                <img
-                  src="/mockupforeditorpage.png"
-                  alt="3D Configurator Editor Preview"
-                  className="w-full h-auto object-cover"
-                />
-                <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent pointer-events-none" />
-              </div>
-            </div>
-          </motion.div>
         </div>
       </section>
 

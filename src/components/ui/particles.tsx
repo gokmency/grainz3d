@@ -254,32 +254,43 @@ const Particles: React.FC<ParticlesProps> = ({
       context.current = canvasRef.current.getContext("2d")
     }
 
+    let animationId: number
+    let resizeTimeout: ReturnType<typeof setTimeout>
+    let retryTimer: ReturnType<typeof setTimeout>
+
     const initAndAnimate = () => {
       initCanvas()
-      animate()
+      animationId = window.requestAnimationFrame(animate)
     }
 
-    initAndAnimate()
+    // Single init - retry only once if dimensions were 0
+    const w = canvasContainerRef.current?.offsetWidth ?? 0
+    const h = canvasContainerRef.current?.offsetHeight ?? 0
+    if (w > 0 && h > 0) {
+      initAndAnimate()
+    } else {
+      retryTimer = setTimeout(initAndAnimate, 200)
+    }
 
-    // Retry if canvas had 0 dimensions (layout not ready yet)
-    const retryTimer = setTimeout(initAndAnimate, 300)
-    const retryTimer2 = setTimeout(initAndAnimate, 800)
+    const debouncedResize = () => {
+      clearTimeout(resizeTimeout)
+      resizeTimeout = setTimeout(initCanvas, 300)
+    }
 
-    const resizeObserver = new ResizeObserver(() => {
-      initCanvas()
-    })
+    const resizeObserver = new ResizeObserver(debouncedResize)
 
     if (canvasContainerRef.current) {
       resizeObserver.observe(canvasContainerRef.current)
     }
 
-    window.addEventListener("resize", initCanvas)
+    window.addEventListener("resize", debouncedResize)
 
     return () => {
       clearTimeout(retryTimer)
-      clearTimeout(retryTimer2)
+      clearTimeout(resizeTimeout)
       resizeObserver.disconnect()
-      window.removeEventListener("resize", initCanvas)
+      window.removeEventListener("resize", debouncedResize)
+      if (animationId) window.cancelAnimationFrame(animationId)
     }
   }, [color])
 
@@ -288,7 +299,7 @@ const Particles: React.FC<ParticlesProps> = ({
   }, [mousePosition.x, mousePosition.y])
 
   useEffect(() => {
-    initCanvas()
+    if (refresh) initCanvas()
   }, [refresh])
 
   return (

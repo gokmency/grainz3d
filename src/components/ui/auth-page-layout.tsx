@@ -1,6 +1,9 @@
+'use client'
+
 import Link from 'next/link'
 import { Sparkles } from 'lucide-react'
 import { AnimatedCharactersPanel } from './animated-characters'
+import { Particles } from './particles'
 
 interface AuthPageLayoutProps {
   children: React.ReactNode
@@ -14,8 +17,18 @@ export function AuthPageLayout({ children, brandName = 'Grainz3D' }: AuthPageLay
       <AnimatedCharactersPanel brandName={brandName} />
 
       {/* Right - Form */}
-      <div className="flex items-center justify-center p-8 bg-background">
-        <div className="w-full max-w-[420px]">
+      <div className="relative flex min-h-screen w-full items-center justify-center p-8 bg-background">
+        <div className="absolute inset-0 z-0 min-h-full w-full">
+          <Particles
+            className="absolute inset-0 h-full w-full min-h-screen"
+            quantity={35}
+            ease={80}
+            staticity={30}
+            color="#ffffff"
+            size={0.5}
+          />
+        </div>
+        <div className="relative z-10 w-full max-w-[420px]">
           <div className="lg:hidden flex items-center justify-center gap-2 text-lg font-semibold mb-12">
             <Link
               href="/"
