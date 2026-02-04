@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useRef, useEffect } from 'react'
+import Image from 'next/image'
 import Link from 'next/link'
 import { updateProfile } from '@/app/auth/actions'
 import { signOut } from '@/app/auth/actions'
@@ -87,12 +88,22 @@ export function SettingsForm({ email, fullName, avatarUrl }: SettingsFormProps) 
         <div className="flex items-center gap-4">
           <div className="relative size-20 rounded-full overflow-hidden bg-muted flex items-center justify-center shrink-0">
             {preview ? (
-              // eslint-disable-next-line @next/next/no-img-element
-              <img
-                src={preview}
-                alt="Avatar"
-                className="w-full h-full object-cover"
-              />
+              preview.startsWith('blob:') ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img
+                  src={preview}
+                  alt="Avatar"
+                  className="w-full h-full object-cover"
+                />
+              ) : (
+                <Image
+                  src={preview}
+                  alt="Avatar"
+                  width={80}
+                  height={80}
+                  className="w-full h-full object-cover"
+                />
+              )
             ) : (
               <User className="w-10 h-10 text-muted-foreground" />
             )}

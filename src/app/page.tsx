@@ -1,6 +1,8 @@
 "use client";
 
 import { useState } from "react";
+import dynamic from "next/dynamic";
+import Image from "next/image";
 import Link from "next/link";
 import {
   Zap,
@@ -14,11 +16,33 @@ import {
   ChevronDown,
   ChevronUp,
 } from "lucide-react";
-import { motion } from "framer-motion";
+import { motion } from "motion/react";
 import { Hero } from "@/components/ui/hero";
-import { Pricing } from "@/components/ui/pricing";
 import { GlowingEffect } from "@/components/ui/glowing-effect";
 import { Particles } from "@/components/ui/particles";
+
+const Pricing = dynamic(
+  () => import("@/components/ui/pricing").then((mod) => mod.Pricing),
+  {
+    ssr: false,
+    loading: () => (
+      <div className="container mx-auto px-4 py-24">
+        <div className="mx-auto max-w-4xl animate-pulse">
+          <div className="h-10 bg-white/10 rounded-lg w-2/3 mx-auto mb-8" />
+          <div className="h-4 bg-white/5 rounded w-full max-w-xl mx-auto mb-16" />
+          <div className="grid gap-6 md:grid-cols-3">
+            {[1, 2, 3].map((i) => (
+              <div
+                key={i}
+                className="h-80 rounded-2xl bg-white/5 border border-white/10"
+              />
+            ))}
+          </div>
+        </div>
+      </div>
+    ),
+  }
+);
 
 export type Language = "en" | "tr";
 
@@ -453,10 +477,13 @@ export default function Home() {
                 borderWidth={2}
               />
               <div className="relative rounded-2xl overflow-hidden shadow-2xl">
-                <img
+                <Image
                   src="/mockupforeditorpage.png"
                   alt="3D Configurator Editor Preview"
+                  width={1200}
+                  height={800}
                   className="w-full h-auto object-cover"
+                  sizes="(max-width: 768px) 100vw, (max-width: 1200px) 80vw, 1200px"
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent pointer-events-none" />
               </div>

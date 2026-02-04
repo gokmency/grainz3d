@@ -8,21 +8,31 @@ interface MousePosition {
   y: number
 }
 
+const MOUSE_THROTTLE_MS = 100
+
 function useMousePosition(): MousePosition {
   const [mousePosition, setMousePosition] = useState<MousePosition>({
     x: 0,
     y: 0,
   })
+  const lastEventRef = React.useRef<MousePosition>({ x: 0, y: 0 })
+  const timeoutRef = React.useRef<ReturnType<typeof setTimeout> | null>(null)
 
   useEffect(() => {
     const handleMouseMove = (event: MouseEvent) => {
-      setMousePosition({ x: event.clientX, y: event.clientY })
+      lastEventRef.current = { x: event.clientX, y: event.clientY }
+      if (timeoutRef.current) return
+      timeoutRef.current = setTimeout(() => {
+        setMousePosition({ ...lastEventRef.current })
+        timeoutRef.current = null
+      }, MOUSE_THROTTLE_MS)
     }
 
-    window.addEventListener("mousemove", handleMouseMove)
+    window.addEventListener("mousemove", handleMouseMove, { passive: true })
 
     return () => {
       window.removeEventListener("mousemove", handleMouseMove)
+      if (timeoutRef.current) clearTimeout(timeoutRef.current)
     }
   }, [])
 

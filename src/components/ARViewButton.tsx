@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useCallback, useEffect } from 'react';
+import Image from 'next/image';
 import { IViewportApi, ISessionApi } from '@shapediver/viewer';
 import { Smartphone, QrCode, X, Loader2, AlertCircle } from 'lucide-react';
 
@@ -167,7 +168,7 @@ export function ARViewButton({ viewport, session }: ARViewButtonProps) {
                   <div className="flex justify-center">
                     <div className="p-4 bg-white rounded-lg">
                       {qrCodeUrl ? (
-                        <img
+                        <Image
                           src={qrCodeUrl}
                           alt="AR QR Code"
                           width={200}

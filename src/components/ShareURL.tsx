@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useCallback, useEffect } from 'react';
+import Image from 'next/image';
 import { ISessionApi, IParameterApi } from '@shapediver/viewer';
 import { Share2, Copy, Check, Link2, QrCode, X, Bookmark } from 'lucide-react';
 import { createPreset } from '@/app/presets/actions';
@@ -206,10 +207,10 @@ export function ShareURL({ session, parameters, modelId }: ShareURLProps) {
                 </button>
 
                 {/* QR Code */}
-                {showQR && (
+                {showQR && qrCodeUrl && (
                   <div className="mt-3 flex justify-center">
                     <div className="p-4 bg-white rounded-lg">
-                      <img
+                      <Image
                         src={qrCodeUrl}
                         alt="QR Code"
                         width={200}

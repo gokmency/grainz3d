@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
+import Image from "next/image";
 import { Menu, X, ArrowRight, Play } from "lucide-react";
 import Link from "next/link";
 
@@ -60,11 +61,16 @@ const ResponsiveHeroBanner: React.FC<ResponsiveHeroBannerProps> = ({
 
   return (
     <section className="w-full isolate min-h-screen overflow-hidden relative">
-      <img
-        src={backgroundImageUrl}
-        alt=""
-        className="w-full h-full object-cover absolute top-0 right-0 bottom-0 left-0"
-      />
+      <div className="absolute inset-0">
+        <Image
+          src={backgroundImageUrl}
+          alt=""
+          fill
+          className="object-cover"
+          priority
+          sizes="100vw"
+        />
+      </div>
       <div className="pointer-events-none absolute inset-0 ring-1 ring-black/30" />
       <div className="absolute inset-0 bg-gradient-to-b from-black/60 via-black/40 to-black/80" />
 

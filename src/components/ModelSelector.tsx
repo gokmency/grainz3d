@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import Image from 'next/image';
 import { ModelConfig, MODELS } from '@/lib/config';
 import { Box, ChevronDown, Check, Layers } from 'lucide-react';
 
@@ -53,9 +54,11 @@ export function ModelSelector({ currentModel, onModelChange, disabled }: ModelSe
               }`}
             >
               {model.thumbnail ? (
-                <img 
-                  src={model.thumbnail} 
+                <Image
+                  src={model.thumbnail}
                   alt={model.name}
+                  width={40}
+                  height={40}
                   className="w-10 h-10 rounded object-cover bg-zinc-800"
                 />
               ) : (

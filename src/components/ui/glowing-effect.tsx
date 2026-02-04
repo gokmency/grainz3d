@@ -4,6 +4,8 @@ import { memo, useCallback, useEffect, useRef } from "react";
 import { cn } from "@/lib/utils";
 import { animate } from "motion/react";
 
+const POINTER_THROTTLE_MS = 50;
+
 interface GlowingEffectProps {
   blur?: number;
   inactiveZone?: number;
@@ -101,8 +103,31 @@ const GlowingEffect = memo(
     useEffect(() => {
       if (disabled) return;
 
-      const handleScroll = () => handleMove();
-      const handlePointerMove = (e: PointerEvent) => handleMove(e);
+      let lastRun = 0;
+      let timeoutId: ReturnType<typeof setTimeout> | null = null;
+      const lastEventRef = { current: null as { x: number; y: number } | null };
+
+      const runMove = (e?: PointerEvent | { x: number; y: number }) => {
+        handleMove(e);
+      };
+
+      const handleScroll = () => runMove();
+      const handlePointerMove = (e: PointerEvent) => {
+        lastEventRef.current = { x: e.clientX, y: e.clientY };
+        const now = Date.now();
+        if (now - lastRun >= POINTER_THROTTLE_MS) {
+          lastRun = now;
+          runMove(e);
+          return;
+        }
+        if (timeoutId === null) {
+          timeoutId = setTimeout(() => {
+            lastRun = Date.now();
+            runMove(lastEventRef.current ?? undefined);
+            timeoutId = null;
+          }, POINTER_THROTTLE_MS - (now - lastRun));
+        }
+      };
 
       window.addEventListener("scroll", handleScroll, { passive: true });
       document.body.addEventListener("pointermove", handlePointerMove, {
@@ -113,6 +138,7 @@ const GlowingEffect = memo(
         if (animationFrameRef.current) {
           cancelAnimationFrame(animationFrameRef.current);
         }
+        if (timeoutId !== null) clearTimeout(timeoutId);
         window.removeEventListener("scroll", handleScroll);
         document.body.removeEventListener("pointermove", handlePointerMove);
       };
