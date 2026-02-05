@@ -18,11 +18,32 @@ function AuthCallbackContent() {
 
     const handleCallback = async () => {
       const hash = window.location.hash
-      if (!hash) {
+      const searchParams = new URLSearchParams(window.location.search)
+      const code = searchParams.get('code')
+
+      // OAuth returns with code (PKCE) or hash (implicit)
+      if (!hash && !code) {
         router.replace('/login')
         return
       }
 
+      // Exchange code for session (OAuth PKCE flow)
+      if (code) {
+        const { data: { session }, error } = await supabase.auth.exchangeCodeForSession(code)
+        if (error) {
+          console.error('OAuth exchange error:', error)
+          router.replace('/login')
+          return
+        }
+        if (session) {
+          router.replace(next)
+        } else {
+          router.replace('/login')
+        }
+        return
+      }
+
+      // Hash flow (magic link, recovery, or implicit OAuth)
       const hashParams = new URLSearchParams(hash.substring(1))
       const type = hashParams.get('type')
 
