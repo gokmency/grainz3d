@@ -1,0 +1,466 @@
+'use client';
+
+import { useState, useCallback, useMemo } from 'react';
+import { ISessionApi, IViewportApi, IExportApi } from '@shapediver/viewer';
+import {
+  Download,
+  Camera,
+  RotateCcw,
+  Play,
+  Pause,
+  Maximize2,
+  Box,
+  FileType,
+  Loader2,
+  ChevronDown,
+  Info,
+} from 'lucide-react';
+
+interface ViewerToolbarProps {
+  session: ISessionApi | null;
+  viewport: IViewportApi | null;
+  onAutoRotateChange?: (enabled: boolean) => void;
+}
+
+interface DynamicExportOption {
+  id: string;
+  name: string;
+  displayName: string;
+  type: string;
+  icon: React.ReactNode;
+  exportApi: IExportApi;
+  // Format parametresi varsa bu değerler de olabilir
+  formatValue?: number | string;
+  formatValueString?: string | number; // String format değeri (fallback)
+  formatParamId?: string;
+}
+
+// Helper to get icon based on export type/name
+function getExportIcon(name: string, type: string): React.ReactNode {
+  const lowerName = name.toLowerCase();
+  const lowerType = type.toLowerCase();
+
+  if (lowerName.includes('stl') || lowerType.includes('stl')) {
+    return <Box className="w-4 h-4" />;
+  }
+  if (lowerName.includes('obj') || lowerType.includes('obj')) {
+    return <FileType className="w-4 h-4" />;
+  }
+  if (lowerName.includes('gltf') || lowerName.includes('glb') || lowerType.includes('gltf')) {
+    return <Box className="w-4 h-4" />;
+  }
+  if (lowerName.includes('step') || lowerName.includes('stp') || lowerType.includes('step')) {
+    return <FileType className="w-4 h-4" />;
+  }
+  // Default icon for any export
+  return <Download className="w-4 h-4" />;
+}
+
+// Helper to format display name
+function formatExportDisplayName(name: string, index: number): string {
+  if (!name || name.trim() === '') {
+    return `Export ${index + 1}`;
+  }
+  
+  const trimmedName = name.trim().toLowerCase();
+  
+  // Common format extensions - show them in uppercase
+  const formatExtensions: { [key: string]: string } = {
+    'stl': 'STL',
+    '3dm': '3DM',
+    'obj': 'OBJ',
+    'gltf': 'GLTF',
+    'glb': 'GLB',
+    'step': 'STEP',
+    'stp': 'STEP',
+    'iges': 'IGES',
+    'igs': 'IGES',
+    'fbx': 'FBX',
+    'dae': 'DAE',
+    'ply': 'PLY',
+    '3ds': '3DS',
+  };
+  
+  // Check if the name contains a format extension
+  for (const [key, value] of Object.entries(formatExtensions)) {
+    if (trimmedName.includes(key)) {
+      return value;
+    }
+  }
+  
+  // If it's a short format name (2-5 characters, likely an extension)
+  if (trimmedName.length <= 5 && /^[a-z0-9]+$/i.test(trimmedName)) {
+    return trimmedName.toUpperCase();
+  }
+  
+  // Capitalize first letter of each word for longer names
+  return name
+    .split(/[\s_-]+/)
+    .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+    .join(' ');
+}
+
+export function ViewerToolbar({
+  session,
+  viewport,
+  onAutoRotateChange,
+}: ViewerToolbarProps) {
+  const [isAutoRotating, setIsAutoRotating] = useState(false);
+  const [isExporting, setIsExporting] = useState(false);
+  const [isTakingScreenshot, setIsTakingScreenshot] = useState(false);
+  const [showExportMenu, setShowExportMenu] = useState(false);
+  const [exportStatus, setExportStatus] = useState<string | null>(null);
+
+  // Get all available exports from the model dynamically
+  const dynamicExports = useMemo((): DynamicExportOption[] => {
+    if (!session) {
+      return [];
+    }
+
+    const exports = Object.values(session.exports);
+    const allParams = Object.values(session.parameters);
+    const formatParam = allParams.find((p) =>
+      p.name?.toLowerCase().includes('format') ||
+      p.id?.toLowerCase().includes('format') ||
+      p.name?.toLowerCase().includes('exportformat') ||
+      p.id?.toLowerCase().includes('exportformat')
+    );
+
+    if (formatParam) {
+      const formatChoices = (formatParam as any).choices;
+      if (Array.isArray(formatChoices) && formatChoices.length > 0) {
+        const formatExports: DynamicExportOption[] = [];
+        formatChoices.forEach((choice, index) => {
+          const choiceString = String(choice);
+          formatExports.push({
+            id: `${exports[0].id}-format-${index}`,
+            name: choiceString,
+            displayName: formatExportDisplayName(choiceString, index),
+            type: exports[0].type || '',
+            icon: getExportIcon(choiceString, ''),
+            exportApi: exports[0],
+            formatValue: index,
+            formatValueString: choice,
+            formatParamId: formatParam.id,
+          });
+        });
+        return formatExports;
+      }
+    }
+
+    // If no format param, try to extract format from export API itself
+    // Common formats: STL, 3DM, OBJ, etc.
+    // If multiple exports, assume each has a different format
+    const commonFormats = ['STL', '3DM', 'OBJ', 'GLTF', 'GLB', 'STEP', 'IGES', 'FBX'];
+    
+    return exports.map((exp, index) => {
+      // Try to extract format from export name or ID
+      const exportName = (exp.name || '').toLowerCase();
+      const exportId = exp.id.toLowerCase();
+      
+      // Check if name or ID contains format info
+      let detectedFormat = '';
+      for (const format of commonFormats) {
+        if (exportName.includes(format.toLowerCase()) || exportId.includes(format.toLowerCase())) {
+          detectedFormat = format;
+          break;
+        }
+      }
+      
+      // If multiple exports and no format detected, use index-based format mapping
+      if (!detectedFormat && exports.length > 1) {
+        // Common export formats in order
+        const formatByIndex = ['STL', '3DM', 'OBJ', 'GLTF', 'GLB', 'STEP'];
+        detectedFormat = formatByIndex[index] || `Export ${index + 1}`;
+      }
+      
+      // Use detected format or fallback to formatted name
+      const displayName = detectedFormat || formatExportDisplayName(exp.name || (exp as any).displayname || '', index);
+      
+      return {
+        id: exp.id,
+        name: exp.name || '',
+        displayName: displayName,
+        type: exp.type || '',
+        icon: getExportIcon(detectedFormat || exp.name || '', exp.type || ''),
+        exportApi: exp,
+      };
+    });
+  }, [session]);
+
+  // Check if any exports are available
+  const hasAnyExports = dynamicExports.length > 0;
+
+  // Reset camera to default view
+  const handleResetCamera = useCallback(async () => {
+    if (!viewport) return;
+
+    try {
+      // Reset camera to fit all content using zoomTo
+      // ShapeDiver API: viewport.camera.zoomTo() or viewport.camera.reset()
+      if (viewport.camera) {
+        // Try zoomTo first (fits all visible content)
+        if (typeof viewport.camera.zoomTo === 'function') {
+          await viewport.camera.zoomTo();
+        } else if (typeof (viewport.camera as any).reset === 'function') {
+          await (viewport.camera as any).reset();
+        }
+      }
+      setExportStatus('Kamera açısı sıfırlandı!');
+      setTimeout(() => setExportStatus(null), 1500);
+    } catch (err) {
+      console.error('Camera reset error:', err);
+    }
+  }, [viewport]);
+
+  // Toggle auto-rotate
+  const handleToggleAutoRotate = useCallback(() => {
+    if (!viewport) return;
+
+    try {
+      const newState = !isAutoRotating;
+      setIsAutoRotating(newState);
+
+      // Enable/disable auto rotation on viewport camera
+      if (viewport.camera) {
+        const cameraControls = (viewport as any).cameraControls;
+        if (cameraControls) {
+          cameraControls.autoRotate = newState;
+          cameraControls.autoRotateSpeed = newState ? 1.0 : 0;
+        } else if ((viewport.camera as any).enableCameraControls) {
+          (viewport.camera as any).enableCameraControls({
+            autoRotate: newState,
+            autoRotateSpeed: 1.0,
+          });
+        }
+      }
+
+      onAutoRotateChange?.(newState);
+    } catch (err) {
+      console.error('Auto-rotate toggle error:', err);
+    }
+  }, [viewport, isAutoRotating, onAutoRotateChange]);
+
+  // Take screenshot
+  const handleScreenshot = useCallback(async () => {
+    if (!viewport) return;
+
+    try {
+      setIsTakingScreenshot(true);
+
+      const screenshot = await viewport.getScreenshot('image/png');
+
+      const link = document.createElement('a');
+      link.href = screenshot;
+      link.download = `3d-tasarim-ekran-goruntusu-${Date.now()}.png`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+
+      setExportStatus('Ekran görüntüsü kaydedildi!');
+      setTimeout(() => setExportStatus(null), 2000);
+    } catch (err) {
+      console.error('Screenshot error:', err);
+      setExportStatus('Ekran görüntüsü alınamadı');
+      setTimeout(() => setExportStatus(null), 2000);
+    } finally {
+      setIsTakingScreenshot(false);
+    }
+  }, [viewport]);
+
+  // Handle export using dynamic export option
+  const handleExport = useCallback(async (exportOption: DynamicExportOption) => {
+    if (!session) {
+      return;
+    }
+
+    try {
+      setIsExporting(true);
+      setShowExportMenu(false);
+      setExportStatus(`${exportOption.displayName} dışa aktarılıyor...`);
+
+      const allParams = Object.values(session.parameters);
+      const formatParam = allParams.find((p) =>
+        p.name?.toLowerCase().includes('format') ||
+        p.id?.toLowerCase().includes('format') ||
+        p.name?.toLowerCase().includes('exportformat') ||
+        p.id?.toLowerCase().includes('exportformat')
+      );
+
+      let result: any;
+
+      if (formatParam && exportOption.formatParamId) {
+        const formatParamType = formatParam.type;
+        const oldValue = formatParam.value as string | number | undefined;
+        let finalFormatValue: string | number;
+
+        if (exportOption.formatValue !== undefined) {
+          finalFormatValue = exportOption.formatValue;
+        } else if (oldValue !== undefined && (typeof oldValue === 'string' || typeof oldValue === 'number')) {
+          finalFormatValue = oldValue;
+        } else {
+          finalFormatValue = '';
+        }
+
+        if (formatParamType === 'StringList') {
+          finalFormatValue = typeof oldValue === 'string' ? String(exportOption.formatValue ?? oldValue) : (exportOption.formatValue ?? oldValue ?? '');
+        } else if (formatParamType === 'String') {
+          finalFormatValue = String(exportOption.formatValueString ?? exportOption.formatValue ?? oldValue ?? '');
+        }
+
+        formatParam.value = finalFormatValue;
+        await session.customize();
+      }
+
+      result = await exportOption.exportApi.request();
+
+      const exportResult = Array.isArray(result) ? result[0] : result;
+
+      if (exportResult?.content && exportResult.content.length > 0) {
+        const href = exportResult.content[0].href;
+        if (href) {
+          window.open(href, '_blank');
+          setExportStatus(`${exportOption.displayName} başarıyla indirildi!`);
+          setTimeout(() => setExportStatus(null), 3000);
+          return;
+        }
+      }
+
+      setExportStatus('Dışa aktarma tamamlandı.');
+      setTimeout(() => setExportStatus(null), 3000);
+    } catch (err) {
+      console.error('Export error:', err);
+      setExportStatus('Dışa aktarma başarısız oldu');
+      setTimeout(() => setExportStatus(null), 2000);
+    } finally {
+      setIsExporting(false);
+    }
+  }, [session]);
+
+  // Fullscreen toggle
+  const handleFullscreen = useCallback(() => {
+    if (!document.fullscreenElement) {
+      document.documentElement.requestFullscreen();
+    } else {
+      document.exitFullscreen();
+    }
+  }, []);
+
+  return (
+    <div className="absolute top-4 right-4 z-20 flex flex-col gap-2">
+      {/* Main Toolbar */}
+      <div className="flex items-center gap-1 p-1 bg-zinc-900/90 backdrop-blur-sm border border-zinc-800 rounded-lg shadow-xl">
+        {/* Export Dropdown */}
+        <div className="relative">
+          <button
+            onClick={() => setShowExportMenu(!showExportMenu)}
+            disabled={!session || isExporting}
+            className="flex items-center gap-1 px-3 py-2 text-sm text-zinc-300 hover:text-white hover:bg-zinc-800 rounded-md transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            title="Modeli Dışa Aktar"
+          >
+            {isExporting ? (
+              <Loader2 className="w-4 h-4 animate-spin" />
+            ) : (
+              <Download className="w-4 h-4" />
+            )}
+            <span className="hidden sm:inline">Dışa Aktar</span>
+            <ChevronDown className="w-3 h-3" />
+          </button>
+
+          {/* Export Menu */}
+          {showExportMenu && (
+            <div className="absolute top-full right-0 mt-1 py-1 bg-zinc-900 border border-zinc-800 rounded-lg shadow-xl min-w-[200px]">
+              {hasAnyExports ? (
+                <>
+                  {dynamicExports.map((option) => (
+                    <button
+                      key={option.id}
+                      onClick={() => handleExport(option)}
+                      className="flex items-center gap-2 w-full px-3 py-2 text-sm transition-colors text-zinc-300 hover:text-white hover:bg-zinc-800"
+                    >
+                      {option.icon}
+                      <span className="flex-1 text-left">{option.displayName}</span>
+                      <span className="text-xs text-emerald-500">✓</span>
+                    </button>
+                  ))}
+                </>
+              ) : (
+                <div className="px-3 py-3 text-sm text-zinc-400">
+                  <div className="flex items-center gap-2 mb-2">
+                    <Info className="w-4 h-4 text-amber-500" />
+                    <span className="font-medium">Dışa aktarma seçeneği yok</span>
+                  </div>
+                  <p className="text-xs text-zinc-500 leading-relaxed">
+                    Bu model için dışa aktarım seçenekleri konfigüre edilmemiştir.
+                  </p>
+                </div>
+              )}
+            </div>
+          )}
+        </div>
+
+        {/* Divider */}
+        <div className="w-px h-6 bg-zinc-700" />
+
+        {/* Screenshot */}
+        <button
+          onClick={handleScreenshot}
+          disabled={!viewport || isTakingScreenshot}
+          className="flex items-center gap-1 px-3 py-2 text-sm text-zinc-300 hover:text-white hover:bg-zinc-800 rounded-md transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+          title="Ekran Görüntüsü Al"
+        >
+          {isTakingScreenshot ? (
+            <Loader2 className="w-4 h-4 animate-spin" />
+          ) : (
+            <Camera className="w-4 h-4" />
+          )}
+          <span className="hidden sm:inline">Ekran Görüntüsü</span>
+        </button>
+
+        {/* Divider */}
+        <div className="w-px h-6 bg-zinc-700" />
+
+        {/* Camera Controls */}
+        <button
+          onClick={handleResetCamera}
+          disabled={!viewport}
+          className="p-2 text-zinc-300 hover:text-white hover:bg-zinc-800 rounded-md transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+          title="Kamerayı Sıfırla"
+        >
+          <RotateCcw className="w-4 h-4" />
+        </button>
+
+        <button
+          onClick={handleToggleAutoRotate}
+          disabled={!viewport}
+          className={`p-2 rounded-md transition-colors disabled:opacity-50 disabled:cursor-not-allowed ${isAutoRotating
+            ? 'text-emerald-400 bg-emerald-900/30 hover:bg-emerald-900/50'
+            : 'text-zinc-300 hover:text-white hover:bg-zinc-800'
+            }`}
+          title={isAutoRotating ? 'Döndürmeyi Durdur' : 'Otomatik Döndür'}
+        >
+          {isAutoRotating ? (
+            <Pause className="w-4 h-4" />
+          ) : (
+            <Play className="w-4 h-4" />
+          )}
+        </button>
+
+        <button
+          onClick={handleFullscreen}
+          className="p-2 text-zinc-300 hover:text-white hover:bg-zinc-800 rounded-md transition-colors"
+          title="Tam Ekran"
+        >
+          <Maximize2 className="w-4 h-4" />
+        </button>
+      </div>
+
+      {/* Status Message */}
+      {exportStatus && (
+        <div className="px-3 py-2 bg-zinc-900/90 backdrop-blur-sm border border-zinc-800 rounded-lg text-xs text-zinc-300 animate-fade-in">
+          {exportStatus}
+        </div>
+      )}
+    </div>
+  );
+}
