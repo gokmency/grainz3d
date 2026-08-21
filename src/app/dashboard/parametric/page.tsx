@@ -29,15 +29,14 @@ export default async function ParametricPage() {
 
   const presets = await getAllPresets()
 
-  const presetsByModel = presets.reduce<Record<string, typeof presets>>(
-    (acc, preset) => {
-      const modelId = preset.modelId
-      if (!acc[modelId]) acc[modelId] = []
-      acc[modelId].push(preset)
-      return acc
-    },
-    {}
-  )
+  const presetsByModel: Record<string, typeof presets> = {}
+  for (const preset of presets) {
+    const modelId = preset.modelId
+    if (!presetsByModel[modelId]) {
+      presetsByModel[modelId] = []
+    }
+    presetsByModel[modelId].push(preset)
+  }
 
   const displayName = profile?.full_name || profile?.email || user.email || 'User'
 

@@ -5,7 +5,17 @@ import { createClient } from '@/lib/supabase/server'
 
 export type PresetValues = Record<string, string | number | boolean>
 
-const DEMO_PRESETS = [
+export interface PresetItem {
+  id: string
+  name: string
+  modelId: string
+  values: PresetValues
+  isFavorite?: boolean
+  isDefault?: boolean
+  createdAt: number
+}
+
+const DEMO_PRESETS: PresetItem[] = [
   {
     id: 'preset-demo-1',
     name: 'İskandinav Meşe Minimal',
@@ -44,7 +54,7 @@ const DEMO_PRESETS = [
   },
 ];
 
-export async function getAllPresets() {
+export async function getAllPresets(): Promise<PresetItem[]> {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return DEMO_PRESETS
@@ -69,7 +79,7 @@ export async function getAllPresets() {
   }))
 }
 
-export async function getPresets(modelId: string) {
+export async function getPresets(modelId: string): Promise<PresetItem[]> {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
   const fallbackForModel = DEMO_PRESETS.filter(p => p.modelId === modelId)
