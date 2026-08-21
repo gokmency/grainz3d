@@ -69,7 +69,7 @@ export async function getAllPresets(): Promise<PresetItem[]> {
     return DEMO_PRESETS
   }
 
-  return (data || []).map((p) => ({
+  return (data || []).map((p: any) => ({
     id: p.id,
     name: p.name,
     modelId: p.model_id,
@@ -96,7 +96,7 @@ export async function getPresets(modelId: string): Promise<PresetItem[]> {
     return fallbackForModel
   }
 
-  return (data || []).map((p) => ({
+  return (data || []).map((p: any) => ({
     id: p.id,
     name: p.name,
     values: (p.values as PresetValues) || {},
